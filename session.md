@@ -865,6 +865,14 @@ Login
 feat: add complete lead management interface
 ```
 
+## Status
+
+```text
+IMPLEMENTED AND VERIFIED — 2026-10-05
+```
+
+The complete create, search, filter, edit, detail, and archive journey passes real-browser tests against PostgreSQL at desktop and mobile widths. The lead list also includes URL-synchronized filters, debounced search, pagination, loading, empty, retry, responsive table/card states, and stable query-cache updates.
+
 ---
 
 # Session 6 — Quotation Engine and API
