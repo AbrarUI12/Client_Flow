@@ -1047,6 +1047,14 @@ The complete lead-to-accepted-quotation workflow works through the user interfac
 feat: build quotation management experience
 ```
 
+## Status
+
+```text
+IMPLEMENTED AND VERIFIED — 2026-10-05
+```
+
+The lead-to-accepted-quotation workflow passes a real-browser PostgreSQL-backed test. The UI includes an exact-decimal three-item preview, reorderable rows, draft editing, save-and-send behavior, authoritative detail totals, responsive search/filter/list states, legal status actions, business and customer identity, lead quotation summaries, and automatic lead refresh to won after acceptance.
+
 ---
 
 # Session 8 — Follow-up Workflow

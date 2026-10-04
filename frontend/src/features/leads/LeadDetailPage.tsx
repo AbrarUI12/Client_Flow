@@ -16,6 +16,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { ApiError } from '../../lib/apiClient'
 import { useAuth } from '../auth/authStore'
+import { LeadQuotationsSection } from '../quotations/LeadQuotationsSection'
 import { archiveLead, getLead } from './api'
 import { formatDate, formatMoney, sourceLabels } from './formatting'
 import { leadKeys } from './queryKeys'
@@ -81,7 +82,7 @@ export function LeadDetailPage() {
           <p className="mt-2 text-slate-600">{lead.company || 'No company added'}</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Link to={`/quotations/new?lead_id=${lead.id}`} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+          <Link to={`/leads/${lead.id}/quotes/new`} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50">
             <FilePlus2 className="size-4" aria-hidden="true" /> Create quotation
           </Link>
           <Link to={`/leads/${lead.id}/edit`} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700">
@@ -108,13 +109,7 @@ export function LeadDetailPage() {
             </div>
           </div>
 
-          <ReservedSection
-            title="Quotations"
-            description="Quotes connected to this lead will appear here."
-            action="Create quotation"
-            to={`/quotations/new?lead_id=${lead.id}`}
-            icon={<FilePlus2 className="size-5" />}
-          />
+          <LeadQuotationsSection leadId={lead.id} />
         </div>
 
         <div className="space-y-5">
