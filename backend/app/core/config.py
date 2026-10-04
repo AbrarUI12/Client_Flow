@@ -20,11 +20,12 @@ class Settings(BaseSettings):
     api_v1_prefix: str = "/api/v1"
 
     database_url: str = "postgresql+psycopg://clientflow:clientflow@localhost:5432/clientflow"
-    secret_key: SecretStr = SecretStr("development-only-change-me")
+    secret_key: SecretStr = SecretStr("development-only-change-me-at-least-32-bytes")
     access_token_expire_minutes: int = Field(default=60, gt=0)
+    jwt_algorithm: Literal["HS256", "HS384", "HS512"] = "HS256"
     cors_origins: str = "http://localhost:5173"
 
-    demo_user_email: str = "demo@clientflow.local"
+    demo_user_email: str = "demo@clientflow.app"
     demo_user_password: SecretStr = SecretStr("development-only-change-me")
     demo_user_full_name: str = "ClientFlow Demo"
     demo_business_name: str = "ClientFlow Demo Company"

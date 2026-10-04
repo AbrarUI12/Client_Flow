@@ -45,6 +45,13 @@ npm run dev
 
 Open <http://localhost:5173>. The connection screen calls the FastAPI health endpoint and reports whether the API is available.
 
+Development demo credentials:
+
+```text
+Email: demo@clientflow.app
+Password: development-only-change-me
+```
+
 ## Checks
 
 ```powershell
@@ -54,6 +61,7 @@ pytest
 cd ..\frontend
 npm run lint
 npm run build
+npm run test:e2e
 ```
 
 ## Project plan

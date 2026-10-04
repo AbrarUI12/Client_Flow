@@ -27,7 +27,7 @@ def test_postgresql_constraints_sequence_and_item_cascade() -> None:
     engine = create_engine(TEST_DATABASE_URL)
 
     with Session(engine) as session:
-        owner = session.scalar(select(User).where(User.email == "demo@clientflow.local"))
+        owner = session.scalar(select(User).where(User.email == "demo@clientflow.app"))
         assert owner is not None
 
         sequence_value = session.scalar(select(quotation_number_sequence.next_value()))

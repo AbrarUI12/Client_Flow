@@ -46,5 +46,5 @@ def test_demo_user_seed_is_idempotent() -> None:
     assert second_created is False
     assert first_user.id == second_user.id
     assert len(users) == 1
-    assert users[0].email == "demo@clientflow.local"
+    assert users[0].email == "demo@clientflow.app"
     assert users[0].password_hash.startswith("$argon2")

@@ -705,6 +705,14 @@ Logout returns to login
 feat: implement JWT authentication flow
 ```
 
+## Status
+
+```text
+IMPLEMENTED AND VERIFIED — 2026-10-05
+```
+
+Backend authentication tests cover valid, invalid, unknown, inactive, anonymous, expired-token, current-user, and logout behavior. A real-browser PostgreSQL-backed test verifies demo login, protected-shell access, `sessionStorage` persistence after refresh, and logout redirection.
+
 ---
 
 # Session 4 — Lead API and Ownership Enforcement
