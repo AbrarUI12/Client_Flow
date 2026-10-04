@@ -1,0 +1,95 @@
+from typing import Annotated
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, Query, status
+from sqlalchemy.orm import Session
+
+from app.core.errors import raise_not_found
+from app.dependencies.auth import CurrentUser
+from app.dependencies.database import get_db
+from app.models.enums import LeadSource, LeadStatus
+from app.models.lead import Lead
+from app.schemas.lead import LeadCreate, LeadListResponse, LeadResponse, LeadUpdate
+from app.services.lead_service import (
+    archive_lead,
+    create_lead,
+    get_owned_lead,
+    list_owned_leads,
+    update_lead,
+)
+
+router = APIRouter(prefix="/leads", tags=["leads"])
+
+
+def require_owned_lead(session: Session, owner_id: UUID, lead_id: UUID) -> Lead:
+    lead = get_owned_lead(session, owner_id, lead_id)
+    if lead is None:
+        raise_not_found("lead")
+    return lead
+
+
+@router.post("", response_model=LeadResponse, status_code=status.HTTP_201_CREATED)
+def create_lead_endpoint(
+    payload: LeadCreate,
+    current_user: CurrentUser,
+    session: Annotated[Session, Depends(get_db)],
+) -> Lead:
+    return create_lead(session, current_user.id, payload)
+
+
+@router.get("", response_model=LeadListResponse)
+def list_leads_endpoint(
+    current_user: CurrentUser,
+    session: Annotated[Session, Depends(get_db)],
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=100)] = 20,
+    search: Annotated[str | None, Query(max_length=100)] = None,
+    lead_status: Annotated[LeadStatus | None, Query(alias="status")] = None,
+    source: LeadSource | None = None,
+) -> LeadListResponse:
+    items, total = list_owned_leads(
+        session,
+        current_user.id,
+        page=page,
+        page_size=page_size,
+        search=search,
+        status=lead_status,
+        source=source,
+    )
+    return LeadListResponse(
+        items=items,
+        page=page,
+        page_size=page_size,
+        total=total,
+        pages=(total + page_size - 1) // page_size,
+    )
+
+
+@router.get("/{lead_id}", response_model=LeadResponse)
+def get_lead_endpoint(
+    lead_id: UUID,
+    current_user: CurrentUser,
+    session: Annotated[Session, Depends(get_db)],
+) -> Lead:
+    return require_owned_lead(session, current_user.id, lead_id)
+
+
+@router.patch("/{lead_id}", response_model=LeadResponse)
+def update_lead_endpoint(
+    lead_id: UUID,
+    payload: LeadUpdate,
+    current_user: CurrentUser,
+    session: Annotated[Session, Depends(get_db)],
+) -> Lead:
+    lead = require_owned_lead(session, current_user.id, lead_id)
+    return update_lead(lead, payload, session)
+
+
+@router.post("/{lead_id}/archive", response_model=LeadResponse)
+def archive_lead_endpoint(
+    lead_id: UUID,
+    current_user: CurrentUser,
+    session: Annotated[Session, Depends(get_db)],
+) -> Lead:
+    lead = require_owned_lead(session, current_user.id, lead_id)
+    return archive_lead(lead, session)

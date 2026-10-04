@@ -774,6 +774,14 @@ The complete lead API passes tests, including cross-user authorization tests.
 feat: implement authorized lead management API
 ```
 
+## Status
+
+```text
+IMPLEMENTED AND VERIFIED — 2026-10-05
+```
+
+The lead API passes validation, normalization, search, filtering, deterministic pagination, update, archive, archived-exclusion, and cross-user isolation tests. Another user's lead returns the same structured `404` for view, update, and archive attempts.
+
 ---
 
 # Session 5 — Lead User Experience
