@@ -64,6 +64,14 @@ npm run build
 npm run test:e2e
 ```
 
+## Quotation calculation policy
+
+The API is authoritative for quotation totals and does not accept client-supplied subtotal,
+discount, tax, total, or line-total values. It calculates each line total first, rounds every
+persisted money result to two decimal places using decimal `ROUND_HALF_UP`, applies the discount
+to the subtotal, and then applies tax to the discounted subtotal. Quantities support three decimal
+places; unit prices and percentages support two.
+
 ## Project plan
 
 The approved product definition is in [`ClientFlow_v1_Full_Project_Design.md`](ClientFlow_v1_Full_Project_Design.md), and the implementation sequence is in [`session.md`](session.md).

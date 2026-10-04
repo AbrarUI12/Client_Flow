@@ -962,6 +962,14 @@ Quotation calculations and all business-state tests pass against PostgreSQL.
 feat: add quotation calculation and workflow API
 ```
 
+## Status
+
+```text
+IMPLEMENTED AND VERIFIED — 2026-10-05
+```
+
+The quotation API calculates all monetary values with documented decimal rounding, generates PostgreSQL sequence-backed quote numbers, persists item replacement atomically, filters and paginates owned records, and enforces the draft/sent/accepted/rejected transition graph. The complete test suite passes with PostgreSQL integration enabled, including acceptance updating the related lead to won and cross-user access returning hidden-resource responses.
+
 ---
 
 # Session 7 — Quotation Builder, List, and Detail Experience
