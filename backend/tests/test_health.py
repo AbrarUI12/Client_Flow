@@ -24,4 +24,3 @@ def test_health_check_allows_configured_development_origin() -> None:
 
     assert response.status_code == 200
     assert response.headers["access-control-allow-origin"] == "http://localhost:5173"
-

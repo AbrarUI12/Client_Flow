@@ -25,6 +25,8 @@ py -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 python -m pip install -e ".[dev]"
+alembic upgrade head
+python -m app.scripts.seed_demo_user
 uvicorn app.main:app --reload --port 8000
 ```
 

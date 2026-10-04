@@ -22,4 +22,3 @@ def health_check() -> HealthResponse:
         service=settings.app_name,
         version=settings.app_version,
     )
-

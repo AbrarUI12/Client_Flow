@@ -629,6 +629,14 @@ Idempotent demo-user seed
 feat: add database models and initial migration
 ```
 
+## Status
+
+```text
+IMPLEMENTED AND VERIFIED — 2026-10-05
+```
+
+Verified against PostgreSQL 17.11: the initial migration creates five application tables, 24 application indexes, 30 application constraints, and the quotation-number sequence. Alembic reports no model/migration drift; downgrade removes every application table and the sequence; re-upgrade succeeds; and the demo seed creates one user then safely reports that it already exists on repeated execution.
+
 ---
 
 # Session 3 — Authentication and Protected Application Shell
