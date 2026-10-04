@@ -12,7 +12,9 @@ export const statusLabels: Record<LeadStatus, string> = {
 export const sourceLabels: Record<LeadSource, string> = {
   WEBSITE: 'Website',
   REFERRAL: 'Referral',
-  SOCIAL: 'Social media',
+  LINKEDIN: 'LinkedIn',
+  UPWORK: 'Upwork',
+  FIVERR: 'Fiverr',
   EMAIL: 'Email',
   PHONE: 'Phone',
   OTHER: 'Other',

@@ -1,6 +1,15 @@
 export const leadStatuses = ['NEW', 'CONTACTED', 'QUALIFIED', 'QUOTED', 'WON', 'LOST'] as const
 
-export const leadSources = ['WEBSITE', 'REFERRAL', 'SOCIAL', 'EMAIL', 'PHONE', 'OTHER'] as const
+export const leadSources = [
+  'WEBSITE',
+  'REFERRAL',
+  'LINKEDIN',
+  'UPWORK',
+  'FIVERR',
+  'EMAIL',
+  'PHONE',
+  'OTHER',
+] as const
 
 export type LeadStatus = (typeof leadStatuses)[number]
 export type LeadSource = (typeof leadSources)[number]
