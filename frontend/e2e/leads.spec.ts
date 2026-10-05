@@ -29,6 +29,7 @@ async function completeLeadWorkflow(page: Page, viewportName: string) {
 
   await expect(page).toHaveURL(/\/leads\/[0-9a-f-]+$/)
   await expect(page.getByRole('heading', { name: contactName })).toBeVisible()
+  await expect(page.getByText('Lead created', { exact: true })).toBeVisible()
   await expect(page.getByText('12,500.50')).toBeVisible()
 
   await page.getByRole('link', { name: 'Edit', exact: true }).click()
@@ -52,6 +53,7 @@ async function completeLeadWorkflow(page: Page, viewportName: string) {
   await page.getByRole('button', { name: 'Archive lead' }).click()
   const dialog = page.getByRole('dialog', { name: `Archive ${contactName}?` })
   await expect(dialog).toBeVisible()
+  await expect(dialog.getByRole('button', { name: 'Cancel' })).toBeFocused()
   await dialog.getByRole('button', { name: 'Archive lead' }).click()
 
   await expect(page).toHaveURL(/\/leads$/)

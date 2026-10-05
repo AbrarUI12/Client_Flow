@@ -1390,6 +1390,19 @@ Every primary route is coherent and usable on desktop and mobile with keyboard-a
 feat: polish responsive and accessible user experience
 ```
 
+## Status
+
+```text
+IMPLEMENTED AND VERIFIED — 2026-10-05
+```
+
+ClientFlow now has shared live-region notifications, native focus-managed confirmation and
+navigation dialogs, irreversible quotation safeguards, linked field errors, stronger focus and
+reduced-motion styles, meaningful route titles, and a useful authenticated 404 page. Tutorial copy,
+fake notification UI, placeholder components, and starter assets were removed. Automated keyboard
+activation, focus return, dialog initial focus, 200% text, and no-overflow checks pass across
+390/768/1280/1600-pixel layouts; all primary desktop/mobile workflows and visual QA also pass.
+
 ---
 
 # Session 13 — Testing, Security, and Release Hardening

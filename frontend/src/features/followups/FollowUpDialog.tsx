@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
+import { useToast } from '../../components/ui/toast'
 import { ApiError } from '../../lib/apiClient'
 import { leadKeys } from '../leads/queryKeys'
 import { createFollowUp, updateFollowUp } from './api'
@@ -32,6 +33,7 @@ export function FollowUpDialog({
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const queryClient = useQueryClient()
+  const { notify } = useToast()
   const [generalError, setGeneralError] = useState('')
   const {
     register,
@@ -71,6 +73,11 @@ export function FollowUpDialog({
         queryClient.invalidateQueries({ queryKey: leadKeys.detail(lead.id) }),
         queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
       ])
+      notify({
+        title: followUp ? 'Follow-up updated' : 'Follow-up added',
+        description: `Reminder saved for ${lead.contact_name}.`,
+        tone: 'success',
+      })
       onClose()
     },
   })
@@ -80,9 +87,10 @@ export function FollowUpDialog({
     try {
       await mutation.mutateAsync(values)
     } catch (error) {
-      setGeneralError(
-        error instanceof ApiError ? error.message : 'The follow-up could not be saved. Please try again.',
-      )
+      const message =
+        error instanceof ApiError ? error.message : 'The follow-up could not be saved. Please try again.'
+      setGeneralError(message)
+      notify({ title: 'Follow-up was not saved', description: message, tone: 'error' })
     }
   })
 
@@ -116,14 +124,20 @@ export function FollowUpDialog({
           {generalError && <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{generalError}</p>}
           <label className="block text-sm font-medium text-slate-700">
             Due date and time
-            <input type="datetime-local" {...register('due_local')} className={inputClass} />
-            <span className="mt-1.5 block text-xs text-slate-500">Shown in {timeZone}.</span>
-            {errors.due_local && <span className="mt-1 block text-xs font-medium text-red-600">{errors.due_local.message}</span>}
+            <input
+              type="datetime-local"
+              {...register('due_local')}
+              className={inputClass}
+              aria-invalid={Boolean(errors.due_local)}
+              aria-describedby={errors.due_local ? 'due-local-error' : 'due-local-help'}
+            />
+            <span id="due-local-help" className="mt-1.5 block text-xs text-slate-500">Shown in {timeZone}.</span>
+            {errors.due_local && <span id="due-local-error" className="mt-1 block text-xs font-medium text-red-600">{errors.due_local.message}</span>}
           </label>
           <label className="block text-sm font-medium text-slate-700">
             Note
-            <textarea autoFocus rows={5} {...register('note')} className={`${inputClass} py-3`} placeholder="What needs to happen next?" />
-            {errors.note && <span className="mt-1.5 block text-xs font-medium text-red-600">{errors.note.message}</span>}
+            <textarea autoFocus rows={5} {...register('note')} className={`${inputClass} py-3`} placeholder="What needs to happen next?" aria-invalid={Boolean(errors.note)} aria-describedby={errors.note ? 'follow-up-note-error' : undefined} />
+            {errors.note && <span id="follow-up-note-error" className="mt-1.5 block text-xs font-medium text-red-600">{errors.note.message}</span>}
           </label>
         </div>
 

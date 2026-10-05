@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { Link, useSearchParams } from 'react-router-dom'
 
+import { useToast } from '../../components/ui/toast'
 import { saveDownloadedFile } from '../../lib/apiClient'
 import { useAuth } from '../auth/authStore'
 import { exportLeads, getLeads } from './api'
@@ -30,6 +31,7 @@ function readEnum<T extends string>(value: string | null, values: readonly T[]):
 
 export function LeadsPage() {
   const { user } = useAuth()
+  const { notify } = useToast()
   const [searchParams, setSearchParams] = useSearchParams()
   const rawSearch = searchParams.get('search') || ''
   const debouncedSearch = useDebouncedValue(rawSearch.trim(), 350)
@@ -53,7 +55,17 @@ export function LeadsPage() {
   })
   const exportMutation = useMutation({
     mutationFn: exportLeads,
-    onSuccess: saveDownloadedFile,
+    onSuccess: (file) => {
+      saveDownloadedFile(file)
+      notify({ title: 'Lead export downloaded', description: file.filename, tone: 'success' })
+    },
+    onError: () => {
+      notify({
+        title: 'Lead export failed',
+        description: 'The CSV could not be downloaded. Please try again.',
+        tone: 'error',
+      })
+    },
   })
 
   function setFilter(name: 'search' | 'status' | 'source', value: string) {

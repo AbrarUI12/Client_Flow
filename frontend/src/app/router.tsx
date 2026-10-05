@@ -4,6 +4,7 @@ import { AppShell } from '../components/layout/AppShell'
 import { LoginPage } from '../features/auth/LoginPage'
 import { ProtectedRoute } from '../features/auth/ProtectedRoute'
 import { DashboardPage } from '../features/dashboard/DashboardPage'
+import { NotFoundPage } from '../features/errors/NotFoundPage'
 import { FollowUpsPage } from '../features/followups/FollowUpsPage'
 import { ConnectionPage } from '../features/health/ConnectionPage'
 import { LeadDetailPage } from '../features/leads/LeadDetailPage'
@@ -39,12 +40,9 @@ export const router = createBrowserRouter([
           { path: '/quotations/:id', element: <QuotationDetailPage /> },
           { path: '/leads/:leadId/quotes/new', element: <QuotationBuilderPage mode="create" /> },
           { path: '/follow-ups', element: <FollowUpsPage /> },
+          { path: '*', element: <NotFoundPage /> },
         ],
       },
     ],
-  },
-  {
-    path: '*',
-    element: <Navigate to="/dashboard" replace />,
   },
 ])

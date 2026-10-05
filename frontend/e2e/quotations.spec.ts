@@ -43,6 +43,7 @@ test('lead quotation can move from draft through accepted with accurate totals',
   await page.getByRole('button', { name: 'Save draft' }).click()
 
   await expect(page).toHaveURL(/\/quotations\/[0-9a-f-]+$/)
+  await expect(page.getByText('Quotation draft saved', { exact: true })).toBeVisible()
   const quoteNumber = await page.getByRole('heading', { name: /^Q-\d{4}-\d{6}$/ }).textContent()
   expect(quoteNumber).toMatch(/^Q-\d{4}-\d{6}$/)
   await expect(page.getByText('Draft', { exact: true })).toBeVisible()
@@ -56,6 +57,10 @@ test('lead quotation can move from draft through accepted with accurate totals',
   await expect(page.getByText('Sent', { exact: true })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Edit', exact: true })).toHaveCount(0)
   await page.getByRole('button', { name: 'Accept' }).click()
+  const acceptDialog = page.getByRole('dialog', { name: `Accept ${quoteNumber}?` })
+  await expect(acceptDialog).toBeVisible()
+  await expect(acceptDialog.getByRole('button', { name: 'Cancel' })).toBeFocused()
+  await acceptDialog.getByRole('button', { name: 'Accept quotation' }).click()
   await expect(page.getByText('Accepted', { exact: true })).toBeVisible()
 
   await page.getByRole('link', { name: contactName }).click()

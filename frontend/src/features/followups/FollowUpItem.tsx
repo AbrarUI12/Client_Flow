@@ -2,6 +2,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Check, LoaderCircle, Pencil } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
+import { useToast } from '../../components/ui/toast'
+import { ApiError } from '../../lib/apiClient'
 import { completeFollowUp } from './api'
 import { formatFollowUpDate } from './dateTime'
 import { followUpKeys } from './queryKeys'
@@ -19,6 +21,7 @@ export function FollowUpItem({
   onEdit?: (followUp: FollowUp) => void
 }) {
   const queryClient = useQueryClient()
+  const { notify } = useToast()
   const completion = useMutation({
     mutationFn: () => completeFollowUp(followUp.id),
     onSuccess: async () => {
@@ -26,6 +29,18 @@ export function FollowUpItem({
         queryClient.invalidateQueries({ queryKey: followUpKeys.all }),
         queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
       ])
+      notify({
+        title: 'Follow-up completed',
+        description: `Reminder for ${followUp.lead.contact_name} is now complete.`,
+        tone: 'success',
+      })
+    },
+    onError: (error) => {
+      notify({
+        title: 'Follow-up was not completed',
+        description: error instanceof ApiError ? error.message : 'Please try again.',
+        tone: 'error',
+      })
     },
   })
 

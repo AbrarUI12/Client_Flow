@@ -6,6 +6,7 @@ import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { z } from 'zod'
 
 import { ApiError } from '../../lib/apiClient'
+import { useDocumentTitle } from '../../lib/useDocumentTitle'
 import { useAuth } from './authStore'
 
 const loginSchema = z.object({
@@ -20,6 +21,7 @@ type LoginLocationState = {
 }
 
 export function LoginPage() {
+  useDocumentTitle('Sign in')
   const { login, status } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
@@ -113,10 +115,11 @@ export function LoginPage() {
                 type="email"
                 autoComplete="email"
                 aria-invalid={Boolean(errors.email)}
+                aria-describedby={errors.email ? 'email-error' : undefined}
                 className="mt-2 min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                 {...register('email')}
               />
-              {errors.email && <p className="mt-2 text-sm text-red-600">{errors.email.message}</p>}
+              {errors.email && <p id="email-error" className="mt-2 text-sm text-red-600">{errors.email.message}</p>}
             </div>
 
             <div>
@@ -132,6 +135,7 @@ export function LoginPage() {
                   type={showPassword ? 'text' : 'password'}
                   autoComplete="current-password"
                   aria-invalid={Boolean(errors.password)}
+                  aria-describedby={errors.password ? 'password-error' : undefined}
                   className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 pr-12 text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                   {...register('password')}
                 />
@@ -145,7 +149,7 @@ export function LoginPage() {
                 </button>
               </div>
               {errors.password && (
-                <p className="mt-2 text-sm text-red-600">{errors.password.message}</p>
+                <p id="password-error" className="mt-2 text-sm text-red-600">{errors.password.message}</p>
               )}
             </div>
 

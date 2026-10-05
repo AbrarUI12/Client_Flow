@@ -1,9 +1,12 @@
 import { ArrowRight, Database, RefreshCw, Server, Wifi, WifiOff } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 import { apiUrl } from '../../lib/apiClient'
+import { useDocumentTitle } from '../../lib/useDocumentTitle'
 import { useHealthQuery } from './api'
 
 export function ConnectionPage() {
+  useDocumentTitle('System status')
   const healthQuery = useHealthQuery()
   const isConnected = healthQuery.isSuccess
 
@@ -27,7 +30,7 @@ export function ConnectionPage() {
 
             <div className="mt-20 max-w-md lg:mt-28">
               <p className="text-xs font-bold uppercase tracking-[0.24em] text-blue-300">
-                Workspace foundation
+                Client operations
               </p>
               <h1 className="mt-5 text-4xl font-semibold leading-[1.08] tracking-[-0.035em] sm:text-5xl">
                 The client journey starts here.
@@ -52,12 +55,12 @@ export function ConnectionPage() {
 
         <div className="flex items-center p-8 sm:p-12 lg:p-14">
           <div className="w-full">
-            <p className="text-sm font-semibold text-blue-600">Development status</p>
+            <p className="text-sm font-semibold text-blue-600">System status</p>
             <h2 className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-slate-900">
-              Frontend to API connection
+              ClientFlow service connection
             </h2>
             <p className="mt-3 leading-7 text-slate-600">
-              This check confirms that the React application can reach the versioned ClientFlow API.
+              Confirm that the workspace can reach its API before signing in or troubleshooting a request.
             </p>
 
             <div
@@ -119,8 +122,8 @@ export function ConnectionPage() {
                 <dd className="max-w-[65%] truncate font-mono text-xs text-slate-700">{apiUrl}</dd>
               </div>
               <div className="flex items-center justify-between gap-4">
-                <dt className="text-slate-500">Environment</dt>
-                <dd className="font-medium text-slate-800">Development</dd>
+                <dt className="text-slate-500">Status check</dt>
+                <dd className="font-medium text-slate-800">Live request</dd>
               </div>
             </dl>
 
@@ -134,11 +137,10 @@ export function ConnectionPage() {
                 <RefreshCw className="size-4" aria-hidden="true" />
               </button>
             ) : (
-              <div className="mt-8 flex items-center gap-2 text-sm font-medium text-slate-500">
-                Session 1 foundation
+              <Link to="/dashboard" className="mt-8 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-blue-700 hover:text-blue-800">
+                Open ClientFlow
                 <ArrowRight className="size-4" aria-hidden="true" />
-                Authentication next
-              </div>
+              </Link>
             )}
           </div>
         </div>

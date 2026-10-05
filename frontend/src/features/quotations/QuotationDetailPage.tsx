@@ -3,12 +3,14 @@ import { ArrowLeft, Check, CircleAlert, Download, LoaderCircle, Pencil, Send, X 
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
+import { useToast } from '../../components/ui/toast'
 import { ApiError, saveDownloadedFile } from '../../lib/apiClient'
 import { useAuth } from '../auth/authStore'
 import { formatMoney } from '../leads/formatting'
 import { leadKeys } from '../leads/queryKeys'
 import { downloadQuotationPdf, getQuotation, transitionQuotation } from './api'
-import { formatPlainDate } from './formatting'
+import { formatPlainDate, quotationStatusLabels } from './formatting'
 import { quotationKeys } from './queryKeys'
 import { QuotationStatusBadge } from './QuotationStatusBadge'
 import type { QuotationStatus } from './types'
@@ -17,7 +19,9 @@ export function QuotationDetailPage() {
   const { id = '' } = useParams()
   const { user } = useAuth()
   const queryClient = useQueryClient()
+  const { notify } = useToast()
   const [actionError, setActionError] = useState('')
+  const [pendingStatus, setPendingStatus] = useState<QuotationStatus | null>(null)
   const quotationQuery = useQuery({
     queryKey: quotationKeys.detail(id),
     queryFn: () => getQuotation(id),
@@ -32,17 +36,33 @@ export function QuotationDetailPage() {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: quotationKeys.lists() }),
         queryClient.invalidateQueries({ queryKey: leadKeys.all }),
+        queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
       ])
+      setPendingStatus(null)
+      notify({
+        title: `Quotation marked ${quotationStatusLabels[quotation.status].toLowerCase()}`,
+        description: quotation.quote_number,
+        tone: 'success',
+      })
     },
-    onError: (error) => setActionError(error instanceof ApiError ? error.message : 'The status could not be updated.'),
+    onError: (error) => {
+      const message = error instanceof ApiError ? error.message : 'The status could not be updated.'
+      setActionError(message)
+      notify({ title: 'Quotation status was not updated', description: message, tone: 'error' })
+    },
   })
   const pdfMutation = useMutation({
     mutationFn: () => downloadQuotationPdf(id),
     onSuccess: (file) => {
       setActionError('')
       saveDownloadedFile(file)
+      notify({ title: 'Quotation PDF downloaded', description: file.filename, tone: 'success' })
     },
-    onError: (error) => setActionError(error instanceof ApiError ? error.message : 'The PDF could not be downloaded.'),
+    onError: (error) => {
+      const message = error instanceof ApiError ? error.message : 'The PDF could not be downloaded.'
+      setActionError(message)
+      notify({ title: 'PDF download failed', description: message, tone: 'error' })
+    },
   })
 
   if (quotationQuery.isPending) return <DetailState title="Loading quotation…" loading />
@@ -58,7 +78,7 @@ export function QuotationDetailPage() {
           <div className="flex flex-wrap gap-2">
             <button type="button" onClick={() => pdfMutation.mutate()} disabled={pdfMutation.isPending} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-wait disabled:opacity-60">{pdfMutation.isPending ? <LoaderCircle className="size-4 animate-spin" /> : <Download className="size-4" />} {pdfMutation.isPending ? 'Preparing PDF…' : 'Download PDF'}</button>
             {quotation.status === 'DRAFT' && <Link to={`/quotations/${quotation.id}/edit`} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 px-4 text-sm font-semibold"><Pencil className="size-4" /> Edit</Link>}
-            <StatusActions status={quotation.status} pending={statusMutation.isPending} onAction={(status) => statusMutation.mutate(status)} />
+            <StatusActions status={quotation.status} pending={statusMutation.isPending} onAction={setPendingStatus} />
           </div>
         </div>
         {actionError && <p role="alert" className="mx-5 mt-5 rounded-xl bg-red-50 p-3 text-sm text-red-700 sm:mx-7">{actionError}</p>}
@@ -80,8 +100,45 @@ export function QuotationDetailPage() {
           <dl className="space-y-3 text-sm"><Amount label="Subtotal" value={quotation.subtotal} currency={user?.currency_code} /><Amount label={`Discount (${quotation.discount_percent}%)`} value={`-${quotation.discount_amount}`} currency={user?.currency_code} /><Amount label={`Tax (${quotation.tax_percent}%)`} value={quotation.tax_amount} currency={user?.currency_code} /><div className="border-t border-slate-200 pt-4"><Amount label="Total" value={quotation.total} currency={user?.currency_code} prominent /></div></dl>
         </div>
       </div>
+      <ConfirmDialog
+        open={pendingStatus !== null}
+        title={statusDialogTitle(quotation.quote_number, pendingStatus)}
+        description={statusDialogDescription(pendingStatus)}
+        confirmLabel={pendingStatus ? statusActionLabel(pendingStatus) : 'Continue'}
+        busyLabel="Updating…"
+        tone={pendingStatus === 'REJECTED' ? 'danger' : 'primary'}
+        busy={statusMutation.isPending}
+        error={statusMutation.isError ? actionError : undefined}
+        onCancel={() => {
+          statusMutation.reset()
+          setPendingStatus(null)
+          setActionError('')
+        }}
+        onConfirm={() => {
+          if (pendingStatus) statusMutation.mutate(pendingStatus)
+        }}
+      />
     </section>
   )
+}
+
+function statusActionLabel(status: QuotationStatus): string {
+  if (status === 'SENT') return 'Mark sent'
+  if (status === 'ACCEPTED') return 'Accept quotation'
+  return 'Reject quotation'
+}
+
+function statusDialogTitle(quoteNumber: string, status: QuotationStatus | null): string {
+  if (status === 'SENT') return `Mark ${quoteNumber} as sent?`
+  if (status === 'ACCEPTED') return `Accept ${quoteNumber}?`
+  if (status === 'REJECTED') return `Reject ${quoteNumber}?`
+  return 'Update quotation status?'
+}
+
+function statusDialogDescription(status: QuotationStatus | null): string {
+  if (status === 'SENT') return 'Sending locks draft editing and moves the related lead to Quoted.'
+  if (status === 'ACCEPTED') return 'Acceptance is final and moves the related lead to Won.'
+  return 'Rejection is final. The quotation cannot be edited or moved to another status afterward.'
 }
 
 function StatusActions({ status, pending, onAction }: { status: QuotationStatus; pending: boolean; onAction: (status: QuotationStatus) => void }) {

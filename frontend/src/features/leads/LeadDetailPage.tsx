@@ -13,6 +13,8 @@ import {
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
+import { useToast } from '../../components/ui/toast'
 import { ApiError } from '../../lib/apiClient'
 import { useAuth } from '../auth/authStore'
 import { LeadFollowUpsSection } from '../followups/LeadFollowUpsSection'
@@ -27,6 +29,7 @@ export function LeadDetailPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const { notify } = useToast()
   const [confirmArchive, setConfirmArchive] = useState(false)
 
   const leadQuery = useQuery({
@@ -41,7 +44,20 @@ export function LeadDetailPage() {
     onSuccess: async () => {
       queryClient.removeQueries({ queryKey: leadKeys.detail(id) })
       await queryClient.invalidateQueries({ queryKey: leadKeys.lists() })
+      setConfirmArchive(false)
+      notify({
+        title: 'Lead archived',
+        description: `${leadQuery.data?.contact_name || 'The lead'} was removed from the active pipeline.`,
+        tone: 'success',
+      })
       navigate('/leads', { replace: true })
+    },
+    onError: (error) => {
+      notify({
+        title: 'Lead was not archived',
+        description: error instanceof ApiError ? error.message : 'Please try again.',
+        tone: 'error',
+      })
     },
   })
 
@@ -125,22 +141,17 @@ export function LeadDetailPage() {
         </div>
       </div>
 
-      {confirmArchive && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/50 p-4 backdrop-blur-sm">
-          <div role="dialog" aria-modal="true" aria-labelledby="archive-title" className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
-            <h2 id="archive-title" className="text-xl font-bold text-slate-950">Archive {lead.contact_name}?</h2>
-            <p className="mt-3 text-sm leading-6 text-slate-600">This lead will disappear from active lists and searches. This action cannot currently be undone in the app.</p>
-            {archiveMutation.isError && <p role="alert" className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">The lead could not be archived. Please try again.</p>}
-            <div className="mt-6 flex justify-end gap-3">
-              <button type="button" disabled={archiveMutation.isPending} onClick={() => setConfirmArchive(false)} className="min-h-11 rounded-xl border border-slate-300 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
-              <button type="button" disabled={archiveMutation.isPending} onClick={() => archiveMutation.mutate()} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-red-600 px-4 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60">
-                {archiveMutation.isPending && <LoaderCircle className="size-4 animate-spin" />}
-                {archiveMutation.isPending ? 'Archiving…' : 'Archive lead'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={confirmArchive}
+        title={`Archive ${lead.contact_name}?`}
+        description="This lead will disappear from active lists and searches. This action cannot currently be undone in the app."
+        confirmLabel="Archive lead"
+        busyLabel="Archiving…"
+        busy={archiveMutation.isPending}
+        error={archiveMutation.isError ? 'The lead could not be archived. Please try again.' : undefined}
+        onCancel={() => setConfirmArchive(false)}
+        onConfirm={() => archiveMutation.mutate()}
+      />
     </section>
   )
 }

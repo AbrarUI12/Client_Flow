@@ -34,6 +34,7 @@ test('follow-up can be scheduled, edited, grouped, and completed', async ({ page
   await createDialog.getByLabel('Note', { exact: true }).fill(initialNote)
   await createDialog.getByRole('button', { name: 'Add follow-up' }).click()
 
+  await expect(page.getByText('Follow-up added', { exact: true })).toBeVisible()
   await expect(page.getByText(initialNote)).toBeVisible()
   await page.goto('/follow-ups')
   const todaySection = page.getByRole('region', { name: 'Today' })

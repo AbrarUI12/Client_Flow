@@ -8,7 +8,7 @@ test('demo user can log in, refresh the tab session, and log out', async ({ page
   await page.getByRole('button', { name: 'Sign in', exact: true }).click()
 
   await expect(page).toHaveURL(/\/dashboard$/)
-  await expect(page.getByText('Session secured')).toBeVisible()
+  await expect(page.getByText('Signed in securely')).toBeVisible()
   await expect
     .poll(() => page.evaluate(() => sessionStorage.getItem('clientflow.access_token')))
     .not.toBeNull()

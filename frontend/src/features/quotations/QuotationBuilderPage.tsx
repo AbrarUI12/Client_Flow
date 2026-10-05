@@ -10,11 +10,13 @@ import {
   Send,
   Trash2,
 } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { cloneElement, useId, useMemo, useState } from 'react'
+import type { ReactElement } from 'react'
 import { useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { z } from 'zod'
 
+import { useToast } from '../../components/ui/toast'
 import { ApiError } from '../../lib/apiClient'
 import { useAuth } from '../auth/authStore'
 import { getLead } from '../leads/api'
@@ -109,6 +111,7 @@ export function QuotationBuilderPage({ mode }: { mode: 'create' | 'edit' }) {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const { user } = useAuth()
+  const { notify } = useToast()
 
   const quotationQuery = useQuery({
     queryKey: quotationKeys.detail(id),
@@ -154,6 +157,11 @@ export function QuotationBuilderPage({ mode }: { mode: 'create' | 'edit' }) {
           queryClient.invalidateQueries({ queryKey: quotationKeys.lists() }),
           queryClient.invalidateQueries({ queryKey: leadKeys.all }),
         ])
+        notify({
+          title: intent === 'sent' ? 'Quotation saved and sent' : 'Quotation draft saved',
+          description: finalQuotation.quote_number,
+          tone: 'success',
+        })
         navigate(`/quotations/${finalQuotation.id}`, { replace: true })
       }}
     />
@@ -173,6 +181,7 @@ function QuotationBuilderForm({
 }) {
   const [generalError, setGeneralError] = useState('')
   const [intent, setIntent] = useState<SaveIntent>('draft')
+  const { notify } = useToast()
   const {
     register,
     control,
@@ -205,7 +214,9 @@ function QuotationBuilderForm({
       const saved = await saveMutation.mutateAsync(toPayload(values))
       await onSaved(saved, saveIntent)
     } catch (error) {
-      setGeneralError(error instanceof ApiError ? error.message : 'The quotation could not be saved. Please try again.')
+      const message = error instanceof ApiError ? error.message : 'The quotation could not be saved. Please try again.'
+      setGeneralError(message)
+      notify({ title: 'Quotation was not saved', description: message, tone: 'error' })
     }
   })
 
@@ -329,12 +340,29 @@ function QuotationBuilderForm({
   )
 }
 
-function BuilderField({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
+function BuilderField({
+  label,
+  error,
+  children,
+}: {
+  label: string
+  error?: string
+  children: ReactElement<{
+    'aria-invalid'?: boolean
+    'aria-describedby'?: string
+  }>
+}) {
+  const errorId = useId()
+  const control = cloneElement(children, {
+    'aria-invalid': Boolean(error),
+    'aria-describedby': error ? errorId : children.props['aria-describedby'],
+  })
+
   return (
     <label className="block text-sm font-medium text-slate-700">
       <span>{label}</span>
-      {children}
-      {error && <span className="mt-1.5 block text-xs font-medium text-red-600">{error}</span>}
+      {control}
+      {error && <span id={errorId} className="mt-1.5 block text-xs font-medium text-red-600">{error}</span>}
     </label>
   )
 }

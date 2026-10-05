@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, CircleAlert, LoaderCircle } from 'lucide-react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
+import { useToast } from '../../components/ui/toast'
 import { createLead, getLead, updateLead } from './api'
 import { LeadForm } from './LeadForm'
 import type { LeadFormValues } from './LeadForm'
@@ -36,6 +37,7 @@ export function LeadFormPage({ mode }: { mode: 'create' | 'edit' }) {
   const { id = '' } = useParams()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const { notify } = useToast()
   const isEditing = mode === 'edit'
 
   const leadQuery = useQuery({
@@ -51,6 +53,11 @@ export function LeadFormPage({ mode }: { mode: 'create' | 'edit' }) {
     onSuccess: async (savedLead) => {
       queryClient.setQueryData(leadKeys.detail(savedLead.id), savedLead)
       await queryClient.invalidateQueries({ queryKey: leadKeys.lists() })
+      notify({
+        title: isEditing ? 'Lead updated' : 'Lead created',
+        description: `${savedLead.contact_name} is ready in your pipeline.`,
+        tone: 'success',
+      })
       navigate(`/leads/${savedLead.id}`, { replace: true })
     },
   })

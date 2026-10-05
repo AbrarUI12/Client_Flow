@@ -27,6 +27,7 @@ test('lead CSV and owned quotation PDF download from the working UI', async ({ p
   const csvDownloadPromise = page.waitForEvent('download')
   await page.getByRole('button', { name: 'Export CSV' }).click()
   const csvDownload = await csvDownloadPromise
+  await expect(page.getByText('Lead export downloaded', { exact: true })).toBeVisible()
   expect(csvDownload.suggestedFilename()).toMatch(/^clientflow-leads-\d{4}-\d{2}-\d{2}\.csv$/)
   const csvPath = await csvDownload.path()
   expect(csvPath).not.toBeNull()
@@ -49,6 +50,7 @@ test('lead CSV and owned quotation PDF download from the working UI', async ({ p
   const pdfDownloadPromise = page.waitForEvent('download')
   await page.getByRole('button', { name: 'Download PDF' }).click()
   const pdfDownload = await pdfDownloadPromise
+  await expect(page.getByText('Quotation PDF downloaded', { exact: true })).toBeVisible()
   expect(pdfDownload.suggestedFilename()).toBe(`quotation-${quoteNumber}.pdf`)
   const pdfPath = await pdfDownload.path()
   expect(pdfPath).not.toBeNull()

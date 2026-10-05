@@ -1,6 +1,6 @@
 # ClientFlow Agent Handoff
 
-Last updated: 2026-10-05, after Session 11 was pushed and before Session 12 implementation.
+Last updated: 2026-10-05, after Session 12 verification and before its push.
 
 This file is the fast-start handoff for any new coding session. Read it before making changes,
 then read the current session in `session.md`. Keep this file current whenever a session changes
@@ -120,8 +120,10 @@ Currency: BDT
 | 9 | Added one-request owned dashboard metrics, pipeline counts, reminder/recent-lead read models, responsive UI, PostgreSQL aggregation tests, and browser refresh coverage | `4bfc7e7` |
 | 10 | Added owned paginated quotation PDFs and safe active-lead CSV exports, authenticated browser downloads, content tests, and mobile coverage | `3f71881` |
 | 11 | Added deterministic screenshot-ready demo data, idempotent normal seed, isolated demo-only reset, production refusal, and tenant-preservation tests | `439e9e6` |
+| 12 | Added coherent responsive polish, shared notifications, focus-managed confirmations/navigation, accessible forms/titles/404, and multi-breakpoint browser coverage | `feat: polish responsive and accessible user experience` |
 
-Sessions 0-11 are marked implemented and verified in `session.md` and are on `origin/main`.
+Sessions 0-12 are marked implemented and verified in `session.md`. Sessions 0-11 are on
+`origin/main`; Session 12 is the next commit/push at this handoff update.
 
 ## Important implemented behavior
 
@@ -207,25 +209,38 @@ Sessions 0-11 are marked implemented and verified in `session.md` and are on `or
   It preserves the user/password and every other tenant. Reset is unconditionally refused when
   `ENVIRONMENT=production`.
 
-## Next session: Session 12
+### UX, responsive behavior, and accessibility
 
-Session 11 is pushed as `439e9e6`. Start Session 12 from that confirmed remote boundary and a clean
-tree (apart from the handoff update commit that immediately follows it).
+- The shell has a native modal mobile navigation drawer with initial focus, Escape/backdrop close,
+  focus return, active text labels, and no fake notification control. Unknown authenticated paths
+  render an actionable 404 instead of silently redirecting.
+- Shared live-region toasts announce mutation/download success and errors. Native confirmation
+  dialogs protect archive and terminal/locking quotation transitions and prevent repeated actions
+  while pending.
+- Login, lead, follow-up, and quotation validation errors are visibly and programmatically linked
+  to their controls. Global focus-visible and reduced-motion rules cover all interactive elements.
+- Page titles follow the current route. Status badges always include text. Tutorial/placeholder
+  copy, the unused placeholder dashboard, and Vite/React starter assets were removed.
+- Playwright checks keyboard activation, dialog focus/return, useful 404 behavior, notification
+  feedback, mobile 200% text, and no page overflow at 390/768/1280/1600 widths. Manual screenshot
+  QA covered the populated desktop dashboard and mobile lead list.
 
-Session 12 objective: make the finished product visually coherent, responsive, accessible, and
-presentation-ready without adding scope. Read the full Session 12 section in `session.md`. Audit and
-standardize visual primitives and status meanings; add consistent success/error notifications,
-pending protection, understandable business errors, consequential-action confirmations, and a
-useful 404 page. Check every primary route at mobile/tablet/laptop/wide sizes, eliminate accidental
-overflow, and keep actions findable. Complete keyboard/focus/dialog/label/contrast/document-title/
-enlarged-text accessibility checks. Remove tutorial/placeholder wording, normalize terminology and
-grammar, and ensure every empty state offers a next action.
+## Next session: Session 13
 
-## Remaining roadmap after Session 11
+Session 12 has cleared its full verification gate. Commit and push it, then start Session 13 from a
+clean tree and confirmed remote boundary.
 
-- Session 12 — UX/accessibility polish: shared visual primitives, notifications, confirmations,
-  useful 404, all target breakpoints, keyboard/focus/dialog behavior, contrast, titles, enlarged
-  text, and removal of all placeholder/tutorial content.
+Session 13 objective: prove release-critical behavior and remove security/reliability blockers.
+Read the full Session 13 section in `session.md`. Complete the ownership/authentication/business-
+rule suite on PostgreSQL with deterministic isolation, then run type/build/browser happy-path gates.
+Audit committed files and runtime behavior for secrets, exact CORS, authentication on every
+protected route, ownership in every record query, enumeration-safe login errors, Argon2, sensitive
+logging, UUID validation, CSV/PDF safety, and production error leakage. Verify rollback for failed
+multi-record work, duplicate-submit protection, stable missing-resource and invalid-transition
+errors, and clean empty-database migrations. Record concrete evidence for every release claim.
+
+## Remaining roadmap after Session 12
+
 - Session 13 — Release hardening: complete ownership/business/security suite on PostgreSQL,
   deterministic isolation, frontend/build/browser gates, secret/CORS/logging/error review,
   transaction/duplicate/migration reliability review.
@@ -241,10 +256,10 @@ its detailed requirements and completion gates.
 
 ## Current verification baseline and known non-blockers
 
-- Session 11 baseline: backend Ruff clean; `40 passed` with all PostgreSQL integration tests enabled.
-  An isolated PostgreSQL database also passed migration, empty seed, no-op repeat seed, modified-data
-  reset, exact 30/8/21/12 restoration, other-owner preservation, and production-mode reset refusal.
-  Frontend lint and production build are clean; all `7` Playwright workflows still pass.
+- Session 12 baseline: backend Ruff clean and `40 passed` with all PostgreSQL integration tests;
+  frontend lint and production build clean; `9` Playwright tests pass. Coverage includes all primary
+  workflows plus keyboard/focus behavior, notifications, 404/title behavior, 200% mobile text, and
+  no-overflow checks at mobile/tablet/laptop/wide breakpoints.
 - Expected non-blocking warnings: Starlette TestClient warns about future `httpx2`; Vite warns that
   the main minified bundle exceeds 500 kB. Address bundle splitting during polish/hardening if it
   remains useful; neither warning currently breaks a gate.

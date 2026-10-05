@@ -72,7 +72,7 @@ export function DashboardPage() {
           <p className="mt-2 text-slate-600">Here is what needs attention across your sales workflow.</p>
         </div>
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-medium text-emerald-800">
-          Session secured
+          Signed in securely
         </div>
       </div>
 

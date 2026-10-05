@@ -120,6 +120,18 @@ UTF-8 byte-order mark improves spreadsheet compatibility. User-entered text begi
 `+`, `-`, or `@` (including after leading whitespace) is prefixed with an apostrophe to prevent
 spreadsheet formula execution; Python's CSV writer handles commas, quotes, Unicode, and newlines.
 
+## UX and accessibility
+
+ClientFlow uses keyboard-accessible native dialogs for mobile navigation, archive confirmation,
+follow-up editing, and irreversible quotation transitions. Focus returns to the invoking control,
+validation errors are associated with form fields, icon-only controls have accessible names, and
+success/error notifications are announced through live regions. Every route has a meaningful
+document title and unknown paths show a useful 404 page.
+
+The primary routes are regression-tested at mobile, tablet, laptop, and wide-desktop widths, plus
+200% text enlargement. The UI honors reduced-motion preferences and uses text labels—not color
+alone—for lead and quotation states.
+
 ## Project plan
 
 The approved product definition is in [`ClientFlow_v1_Full_Project_Design.md`](ClientFlow_v1_Full_Project_Design.md), and the implementation sequence is in [`session.md`](session.md).

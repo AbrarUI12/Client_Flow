@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
+import { useToast } from '../../components/ui/toast'
 import { ApiError } from '../../lib/apiClient'
 import { sourceLabels, statusLabels } from './formatting'
 import { leadSources, leadStatuses } from './types'
@@ -59,6 +60,7 @@ const inputClass =
 
 export function LeadForm({ defaultValues, submitLabel, onSubmit }: LeadFormProps) {
   const [generalError, setGeneralError] = useState('')
+  const { notify } = useToast()
   const {
     register,
     handleSubmit,
@@ -73,9 +75,9 @@ export function LeadForm({ defaultValues, submitLabel, onSubmit }: LeadFormProps
     try {
       await onSubmit(toPayload(values))
     } catch (error) {
-      setGeneralError(
-        error instanceof ApiError ? error.message : 'We could not save this lead. Please try again.',
-      )
+      const message = error instanceof ApiError ? error.message : 'We could not save this lead. Please try again.'
+      setGeneralError(message)
+      notify({ title: 'Lead was not saved', description: message, tone: 'error' })
     }
   })
 
@@ -89,23 +91,23 @@ export function LeadForm({ defaultValues, submitLabel, onSubmit }: LeadFormProps
 
       <div className="grid gap-5 sm:grid-cols-2">
         <Field htmlFor="contact_name" label="Contact name" error={errors.contact_name?.message} required>
-          <input id="contact_name" {...register('contact_name')} autoComplete="name" className={inputClass} />
+          <input id="contact_name" {...register('contact_name')} autoComplete="name" className={inputClass} aria-required="true" aria-invalid={Boolean(errors.contact_name)} aria-describedby={errors.contact_name ? 'contact_name-error' : undefined} />
         </Field>
 
         <Field htmlFor="company" label="Company" error={errors.company?.message}>
-          <input id="company" {...register('company')} autoComplete="organization" className={inputClass} />
+          <input id="company" {...register('company')} autoComplete="organization" className={inputClass} aria-invalid={Boolean(errors.company)} aria-describedby={errors.company ? 'company-error' : undefined} />
         </Field>
 
         <Field htmlFor="email" label="Email" error={errors.email?.message}>
-          <input id="email" {...register('email')} type="email" autoComplete="email" className={inputClass} />
+          <input id="email" {...register('email')} type="email" autoComplete="email" className={inputClass} aria-invalid={Boolean(errors.email)} aria-describedby={errors.email ? 'email-error' : undefined} />
         </Field>
 
         <Field htmlFor="phone" label="Phone" error={errors.phone?.message}>
-          <input id="phone" {...register('phone')} type="tel" autoComplete="tel" className={inputClass} />
+          <input id="phone" {...register('phone')} type="tel" autoComplete="tel" className={inputClass} aria-invalid={Boolean(errors.phone)} aria-describedby={errors.phone ? 'phone-error' : undefined} />
         </Field>
 
         <Field htmlFor="source" label="Source" error={errors.source?.message}>
-          <select id="source" {...register('source')} className={inputClass}>
+          <select id="source" {...register('source')} className={inputClass} aria-invalid={Boolean(errors.source)} aria-describedby={errors.source ? 'source-error' : undefined}>
             <option value="">Not specified</option>
             {leadSources.map((source) => (
               <option key={source} value={source}>
@@ -116,7 +118,7 @@ export function LeadForm({ defaultValues, submitLabel, onSubmit }: LeadFormProps
         </Field>
 
         <Field htmlFor="status" label="Status" error={errors.status?.message} required>
-          <select id="status" {...register('status')} className={inputClass}>
+          <select id="status" {...register('status')} className={inputClass} aria-required="true" aria-invalid={Boolean(errors.status)} aria-describedby={errors.status ? 'status-error' : undefined}>
             {leadStatuses.map((status) => (
               <option key={status} value={status}>
                 {statusLabels[status]}
@@ -135,12 +137,15 @@ export function LeadForm({ defaultValues, submitLabel, onSubmit }: LeadFormProps
             step="0.01"
             inputMode="decimal"
             className={inputClass}
+            aria-required="true"
+            aria-invalid={Boolean(errors.estimated_value)}
+            aria-describedby={errors.estimated_value ? 'estimated_value-error' : undefined}
           />
         </Field>
       </div>
 
       <Field htmlFor="notes" label="Notes" error={errors.notes?.message}>
-        <textarea id="notes" {...register('notes')} rows={6} className={`${inputClass} resize-y`} />
+        <textarea id="notes" {...register('notes')} rows={6} className={`${inputClass} resize-y`} aria-invalid={Boolean(errors.notes)} aria-describedby={errors.notes ? 'notes-error' : undefined} />
       </Field>
 
       <div className="flex justify-end border-t border-slate-200 pt-6">
@@ -177,7 +182,7 @@ function Field({
         {required && <span className="ml-1 text-red-500" aria-hidden="true">*</span>}
       </label>
       {children}
-      {error && <span className="mt-1.5 block text-xs font-medium text-red-600">{error}</span>}
+      {error && <span id={`${htmlFor}-error`} className="mt-1.5 block text-xs font-medium text-red-600">{error}</span>}
     </div>
   )
 }
