@@ -86,6 +86,19 @@ Dashboard metrics include only the authenticated user's non-archived leads and t
 rejected, and archived-lead records. Upcoming dashboard reminders include today and future local
 dates, while overdue reminders are due before the start of the user's current local day.
 
+## Export safety and ownership
+
+Quotation PDFs are generated from server-owned records and server-calculated totals. They include
+the authenticated user's business profile, client identity, ordered items, dates, status, notes,
+and a repeating item header when the document spans pages. Foreign quotation IDs return the same
+not-found response as missing records.
+
+Lead CSV exports include all non-archived leads owned by the authenticated user in a stable column
+order. Dates are rendered in the user's configured timezone, decimals retain two places, and a
+UTF-8 byte-order mark improves spreadsheet compatibility. User-entered text beginning with `=`,
+`+`, `-`, or `@` (including after leading whitespace) is prefixed with an apostrophe to prevent
+spreadsheet formula execution; Python's CSV writer handles commas, quotes, Unicode, and newlines.
+
 ## Project plan
 
 The approved product definition is in [`ClientFlow_v1_Full_Project_Design.md`](ClientFlow_v1_Full_Project_Design.md), and the implementation sequence is in [`session.md`](session.md).

@@ -1248,6 +1248,19 @@ Both exports download successfully, contain correct information, and enforce own
 feat: add quotation PDF and lead CSV exports
 ```
 
+## Status
+
+```text
+IMPLEMENTED AND VERIFIED — 2026-10-05
+```
+
+Owned quotation PDFs now include business and client identity, dates and status, every ordered
+item, server-authoritative totals, optional notes, page numbers, and automatic multi-page table
+splitting. Lead CSV downloads use deterministic active-owner ordering, stable human-readable
+columns, timezone-local dates, exact decimals, UTF-8 spreadsheet compatibility, standards-based
+escaping, and formula-injection neutralization. Content, filenames, authentication, ownership,
+long-document pagination, desktop download behavior, and mobile action visibility are automated.
+
 ---
 
 # Session 11 — Complete Demo Dataset and Reset Workflow

@@ -1,4 +1,5 @@
-import { apiRequest } from '../../lib/apiClient'
+import { apiDownload, apiRequest } from '../../lib/apiClient'
+import type { DownloadedFile } from '../../lib/apiClient'
 import type {
   Quotation,
   QuotationListParams,
@@ -50,4 +51,8 @@ export async function transitionQuotation(
     method: 'PATCH',
     body: JSON.stringify({ status }),
   })
+}
+
+export async function downloadQuotationPdf(quotationId: string): Promise<DownloadedFile> {
+  return apiDownload(`/quotations/${quotationId}/pdf`)
 }

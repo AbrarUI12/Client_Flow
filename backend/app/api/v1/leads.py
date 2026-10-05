@@ -1,7 +1,7 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query, Response, status
 from sqlalchemy.orm import Session
 
 from app.core.errors import raise_not_found
@@ -10,6 +10,7 @@ from app.dependencies.database import get_db
 from app.models.enums import LeadSource, LeadStatus
 from app.models.lead import Lead
 from app.schemas.lead import LeadCreate, LeadListResponse, LeadResponse, LeadUpdate
+from app.services.export_service import build_leads_csv, leads_export_filename
 from app.services.lead_service import (
     archive_lead,
     create_lead,
@@ -35,6 +36,22 @@ def create_lead_endpoint(
     session: Annotated[Session, Depends(get_db)],
 ) -> Lead:
     return create_lead(session, current_user.id, payload)
+
+
+@router.get("/export")
+def export_leads_endpoint(
+    current_user: CurrentUser,
+    session: Annotated[Session, Depends(get_db)],
+) -> Response:
+    filename = leads_export_filename()
+    return Response(
+        content=build_leads_csv(session, current_user),
+        media_type="text/csv; charset=utf-8",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "X-Content-Type-Options": "nosniff",
+        },
+    )
 
 
 @router.get("", response_model=LeadListResponse)

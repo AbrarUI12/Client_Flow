@@ -1,7 +1,7 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query, Response, status
 from sqlalchemy.orm import Session
 
 from app.core.errors import raise_not_found
@@ -17,6 +17,7 @@ from app.schemas.quotation import (
     QuotationStatusUpdate,
     QuotationUpdate,
 )
+from app.services.export_service import build_quotation_pdf
 from app.services.lead_service import get_owned_lead
 from app.services.quotation_service import (
     create_quotation,
@@ -112,6 +113,24 @@ def get_quotation_endpoint(
     session: Annotated[Session, Depends(get_db)],
 ) -> Quotation:
     return require_owned_quotation(session, current_user.id, quotation_id)
+
+
+@router.get("/quotations/{quotation_id}/pdf")
+def download_quotation_pdf_endpoint(
+    quotation_id: UUID,
+    current_user: CurrentUser,
+    session: Annotated[Session, Depends(get_db)],
+) -> Response:
+    quotation = require_owned_quotation(session, current_user.id, quotation_id)
+    filename = f"quotation-{quotation.quote_number}.pdf"
+    return Response(
+        content=build_quotation_pdf(quotation, current_user),
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "X-Content-Type-Options": "nosniff",
+        },
+    )
 
 
 @router.patch("/quotations/{quotation_id}", response_model=QuotationResponse)

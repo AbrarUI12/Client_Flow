@@ -1,4 +1,5 @@
-import { apiRequest } from '../../lib/apiClient'
+import { apiDownload, apiRequest } from '../../lib/apiClient'
+import type { DownloadedFile } from '../../lib/apiClient'
 import type { Lead, LeadListParams, LeadListResponse, LeadPayload } from './types'
 
 export async function getLeads(params: LeadListParams): Promise<LeadListResponse> {
@@ -34,4 +35,8 @@ export async function updateLead(leadId: string, payload: LeadPayload): Promise<
 
 export async function archiveLead(leadId: string): Promise<Lead> {
   return apiRequest<Lead>(`/leads/${leadId}/archive`, { method: 'POST' })
+}
+
+export async function exportLeads(): Promise<DownloadedFile> {
+  return apiDownload('/leads/export')
 }

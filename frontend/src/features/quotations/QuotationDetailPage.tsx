@@ -3,11 +3,11 @@ import { ArrowLeft, Check, CircleAlert, Download, LoaderCircle, Pencil, Send, X 
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
-import { ApiError } from '../../lib/apiClient'
+import { ApiError, saveDownloadedFile } from '../../lib/apiClient'
 import { useAuth } from '../auth/authStore'
 import { formatMoney } from '../leads/formatting'
 import { leadKeys } from '../leads/queryKeys'
-import { getQuotation, transitionQuotation } from './api'
+import { downloadQuotationPdf, getQuotation, transitionQuotation } from './api'
 import { formatPlainDate } from './formatting'
 import { quotationKeys } from './queryKeys'
 import { QuotationStatusBadge } from './QuotationStatusBadge'
@@ -36,6 +36,14 @@ export function QuotationDetailPage() {
     },
     onError: (error) => setActionError(error instanceof ApiError ? error.message : 'The status could not be updated.'),
   })
+  const pdfMutation = useMutation({
+    mutationFn: () => downloadQuotationPdf(id),
+    onSuccess: (file) => {
+      setActionError('')
+      saveDownloadedFile(file)
+    },
+    onError: (error) => setActionError(error instanceof ApiError ? error.message : 'The PDF could not be downloaded.'),
+  })
 
   if (quotationQuery.isPending) return <DetailState title="Loading quotation…" loading />
   if (quotationQuery.isError) return <DetailState title="Quotation not found" />
@@ -48,7 +56,7 @@ export function QuotationDetailPage() {
         <div className="flex flex-col gap-5 border-b border-slate-200 p-5 sm:p-7 lg:flex-row lg:items-start lg:justify-between">
           <div><div className="flex flex-wrap items-center gap-3"><h1 className="text-3xl font-bold tracking-tight">{quotation.quote_number}</h1><QuotationStatusBadge status={quotation.status} /></div><p className="mt-2 text-sm text-slate-600">Issued {formatPlainDate(quotation.issue_date)} · Valid until {formatPlainDate(quotation.valid_until)}</p></div>
           <div className="flex flex-wrap gap-2">
-            <button type="button" disabled title="PDF export arrives in Session 10" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 px-4 text-sm font-semibold text-slate-400"><Download className="size-4" /> PDF</button>
+            <button type="button" onClick={() => pdfMutation.mutate()} disabled={pdfMutation.isPending} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-wait disabled:opacity-60">{pdfMutation.isPending ? <LoaderCircle className="size-4 animate-spin" /> : <Download className="size-4" />} {pdfMutation.isPending ? 'Preparing PDF…' : 'Download PDF'}</button>
             {quotation.status === 'DRAFT' && <Link to={`/quotations/${quotation.id}/edit`} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 px-4 text-sm font-semibold"><Pencil className="size-4" /> Edit</Link>}
             <StatusActions status={quotation.status} pending={statusMutation.isPending} onAction={(status) => statusMutation.mutate(status)} />
           </div>

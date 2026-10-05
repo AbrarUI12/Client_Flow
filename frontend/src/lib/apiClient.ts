@@ -24,6 +24,35 @@ type ErrorBody = {
   detail?: string | { code?: string; message?: string }
 }
 
+export type DownloadedFile = {
+  blob: Blob
+  filename: string
+}
+
+async function throwResponseError(response: Response, authenticated: boolean): Promise<never> {
+  let message = `API request failed with status ${response.status}.`
+  let code = 'REQUEST_FAILED'
+
+  try {
+    const body = (await response.json()) as ErrorBody
+    if (typeof body.detail === 'string') {
+      message = body.detail
+    } else if (body.detail) {
+      message = body.detail.message || message
+      code = body.detail.code || code
+    }
+  } catch {
+    // Keep the safe fallback when an upstream response is not JSON.
+  }
+
+  if (response.status === 401 && authenticated) {
+    clearAccessToken()
+    window.dispatchEvent(new Event(UNAUTHORIZED_EVENT))
+  }
+
+  throw new ApiError(message, response.status, code)
+}
+
 export async function apiRequest<T>(path: string, options: ApiRequestOptions = {}): Promise<T> {
   const { authenticated = true, ...init } = options
   const headers = new Headers(init.headers)
@@ -44,27 +73,7 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
   })
 
   if (!response.ok) {
-    let message = `API request failed with status ${response.status}.`
-    let code = 'REQUEST_FAILED'
-
-    try {
-      const body = (await response.json()) as ErrorBody
-      if (typeof body.detail === 'string') {
-        message = body.detail
-      } else if (body.detail) {
-        message = body.detail.message || message
-        code = body.detail.code || code
-      }
-    } catch {
-      // Keep the safe fallback when an upstream response is not JSON.
-    }
-
-    if (response.status === 401 && authenticated) {
-      clearAccessToken()
-      window.dispatchEvent(new Event(UNAUTHORIZED_EVENT))
-    }
-
-    throw new ApiError(message, response.status, code)
+    return throwResponseError(response, authenticated)
   }
 
   if (response.status === 204) {
@@ -72,5 +81,37 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
   }
 
   return response.json() as Promise<T>
+}
+
+export async function apiDownload(path: string): Promise<DownloadedFile> {
+  const headers = new Headers({ Accept: 'application/octet-stream' })
+  const token = getAccessToken()
+  if (token) headers.set('Authorization', `Bearer ${token}`)
+
+  const response = await fetch(`${apiUrl}${path}`, { headers })
+  if (!response.ok) return throwResponseError(response, true)
+
+  const disposition = response.headers.get('Content-Disposition') || ''
+  const encodedName = disposition.match(/filename\*=UTF-8''([^;]+)/i)?.[1]
+  const plainName = disposition.match(/filename="?([^";]+)"?/i)?.[1]
+  let filename = 'clientflow-download'
+  try {
+    filename = encodedName ? decodeURIComponent(encodedName) : (plainName || filename)
+  } catch {
+    filename = plainName || filename
+  }
+
+  return { blob: await response.blob(), filename }
+}
+
+export function saveDownloadedFile(file: DownloadedFile): void {
+  const objectUrl = URL.createObjectURL(file.blob)
+  const link = document.createElement('a')
+  link.href = objectUrl
+  link.download = file.filename
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  URL.revokeObjectURL(objectUrl)
 }
 

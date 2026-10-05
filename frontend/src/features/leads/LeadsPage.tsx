@@ -1,8 +1,10 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query'
 import {
   ArrowLeft,
   ArrowRight,
   CircleAlert,
+  Download,
+  LoaderCircle,
   Plus,
   RotateCcw,
   Search,
@@ -10,8 +12,9 @@ import {
 } from 'lucide-react'
 import { Link, useSearchParams } from 'react-router-dom'
 
+import { saveDownloadedFile } from '../../lib/apiClient'
 import { useAuth } from '../auth/authStore'
-import { getLeads } from './api'
+import { exportLeads, getLeads } from './api'
 import { formatDate, formatMoney, sourceLabels, statusLabels } from './formatting'
 import { leadKeys } from './queryKeys'
 import { StatusBadge } from './StatusBadge'
@@ -48,6 +51,10 @@ export function LeadsPage() {
     queryFn: () => getLeads(params),
     placeholderData: keepPreviousData,
   })
+  const exportMutation = useMutation({
+    mutationFn: exportLeads,
+    onSuccess: saveDownloadedFile,
+  })
 
   function setFilter(name: 'search' | 'status' | 'source', value: string) {
     const next = new URLSearchParams(searchParams)
@@ -79,14 +86,31 @@ export function LeadsPage() {
           <h2 className="mt-1 text-3xl font-bold tracking-tight text-slate-950">Leads</h2>
           <p className="mt-2 text-sm text-slate-600">Track every prospect from first contact to final outcome.</p>
         </div>
-        <Link
-          to="/leads/new"
-          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
-        >
-          <Plus className="size-4" aria-hidden="true" />
-          Add Lead
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => exportMutation.mutate()}
+            disabled={exportMutation.isPending}
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-wait disabled:opacity-60"
+          >
+            {exportMutation.isPending ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : <Download className="size-4" aria-hidden="true" />}
+            {exportMutation.isPending ? 'Preparing CSV…' : 'Export CSV'}
+          </button>
+          <Link
+            to="/leads/new"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
+          >
+            <Plus className="size-4" aria-hidden="true" />
+            Add Lead
+          </Link>
+        </div>
       </div>
+
+      {exportMutation.isError && (
+        <p role="alert" className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          The lead export could not be downloaded. Please try again.
+        </p>
+      )}
 
       <div className="mt-7 rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="grid gap-3 border-b border-slate-200 p-4 sm:grid-cols-[minmax(15rem,1fr)_12rem_12rem] sm:p-5">
