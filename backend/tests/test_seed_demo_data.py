@@ -195,6 +195,9 @@ def test_production_reset_and_naive_seed_anchor_are_rejected_without_changes(
     production_settings = Settings(
         _env_file=None,
         environment="production",
+        secret_key="a-private-production-signing-key-for-tests",
+        database_url="postgresql+psycopg://clientflow@db.example.com/clientflow",
+        cors_origins="https://clientflow.example.com",
         demo_user_password="a-production-only-demo-password",
     )
 

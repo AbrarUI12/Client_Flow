@@ -1,12 +1,12 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.errors import raise_not_found
 from app.dependencies.auth import CurrentUser
-from app.dependencies.database import get_db
+from app.dependencies.database import DbSession
 from app.models.followup import FollowUp
 from app.models.lead import Lead
 from app.schemas.followup import (
@@ -44,7 +44,7 @@ def create_followup_endpoint(
     lead_id: UUID,
     payload: FollowUpCreate,
     current_user: CurrentUser,
-    session: Annotated[Session, Depends(get_db)],
+    session: DbSession,
 ) -> FollowUp:
     lead = require_active_owned_lead(session, current_user.id, lead_id)
     return create_followup(session, lead, payload)
@@ -53,7 +53,7 @@ def create_followup_endpoint(
 @router.get("/follow-ups", response_model=FollowUpListResponse)
 def list_followups_endpoint(
     current_user: CurrentUser,
-    session: Annotated[Session, Depends(get_db)],
+    session: DbSession,
     group: FollowUpGroup | None = None,
     lead_id: UUID | None = None,
     limit: Annotated[int, Query(ge=1, le=500)] = 100,
@@ -75,9 +75,9 @@ def update_followup_endpoint(
     followup_id: UUID,
     payload: FollowUpUpdate,
     current_user: CurrentUser,
-    session: Annotated[Session, Depends(get_db)],
+    session: DbSession,
 ) -> FollowUp:
-    followup = require_owned_followup(session, current_user.id, followup_id)
+    followup = require_owned_followup(session, current_user.id, followup_id, for_update=True)
     return update_followup(session, followup, payload)
 
 
@@ -85,7 +85,7 @@ def update_followup_endpoint(
 def complete_followup_endpoint(
     followup_id: UUID,
     current_user: CurrentUser,
-    session: Annotated[Session, Depends(get_db)],
+    session: DbSession,
 ) -> FollowUp:
-    followup = require_owned_followup(session, current_user.id, followup_id)
+    followup = require_owned_followup(session, current_user.id, followup_id, for_update=True)
     return complete_followup(session, followup)

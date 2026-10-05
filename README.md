@@ -78,12 +78,40 @@ the documented development-only demo password.
 ```powershell
 cd backend
 pytest
+python -m ruff check .
 
 cd ..\frontend
 npm run lint
 npm run build
 npm run test:e2e
 ```
+
+The backend suite runs entirely against PostgreSQL. By default it uses
+`postgresql+psycopg://clientflow:clientflow@localhost:5432/clientflow_test` (the Docker Compose
+server), creates that database if it is missing, and builds its schema from the Alembic
+migrations on every run. Each test runs inside a transaction that is always rolled back. To use
+another server, set `TEST_DATABASE_URL`. The database name must end in `_test`, because the suite
+drops and rebuilds its schema.
+
+`npm run test:e2e` expects the API on port 8000 and the web app on port 5173 to be running against
+a migrated, seeded development database. The browser tests create uniquely named records there.
+
+## Security and reliability safeguards
+
+- Every API route except health and login requires a valid bearer token. Tokens must carry an
+  expiry, issue time, subject, and type. Login failures are identical for unknown emails, wrong
+  passwords, and inactive accounts.
+- Every record query is scoped to the authenticated owner. Another account's IDs return the same
+  `404` as missing records.
+- Each request's database work is committed or rolled back before the response is sent.
+  Quotation and follow-up changes lock their row, so concurrent conflicting actions resolve to one
+  success and one `409`.
+- With `ENVIRONMENT=production`, the API refuses to start without a private `SECRET_KEY` of at
+  least 32 bytes, a real `DATABASE_URL`, and explicit `CORS_ORIGINS`. CORS allows only the
+  configured origins, the GET/POST/PATCH methods, and the headers the web app sends.
+- Validation errors never echo submitted values, and unexpected errors return no internal details.
+- Archiving a lead also hides its quotations and follow-ups from lists, detail pages, and PDFs,
+  matching the dashboard. The records remain stored.
 
 ## Quotation calculation policy
 

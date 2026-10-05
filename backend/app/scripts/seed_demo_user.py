@@ -664,9 +664,17 @@ def seed_demo_data(
     marker_id = _demo_id("lead", DEMO_LEADS[0].key)
 
     try:
+        # Demo record IDs are fixed, so the dataset can belong to only one account at a time.
+        marker_owner_id = session.scalar(select(Lead.owner_id).where(Lead.id == marker_id))
+        if marker_owner_id is not None and marker_owner_id != user.id:
+            raise RuntimeError(
+                "The demo dataset already belongs to a different account. "
+                "Use that account's DEMO_USER_EMAIL to seed or reset it."
+            )
+
         if reset:
             _reset_demo_business_data(session, user.id)
-        elif session.get(Lead, marker_id) is not None:
+        elif marker_owner_id is not None:
             return SeedResult(
                 user=user,
                 user_created=user_created,

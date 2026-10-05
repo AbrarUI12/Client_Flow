@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 
@@ -8,6 +9,7 @@ import { clearAccessToken, getAccessToken, setAccessToken, UNAUTHORIZED_EVENT } 
 import type { AuthUser, LoginCredentials } from './types'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient()
   const [user, setUser] = useState<AuthUser | null>(null)
   const [status, setStatus] = useState<AuthStatus>(() =>
     getAccessToken() ? 'loading' : 'anonymous',
@@ -15,9 +17,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const clearSession = useCallback(() => {
     clearAccessToken()
+    // Cached records belong to the ending session and must never render for the next account.
+    queryClient.clear()
     setUser(null)
     setStatus('anonymous')
-  }, [])
+  }, [queryClient])
 
   useEffect(() => {
     const handleUnauthorized = () => clearSession()
@@ -55,13 +59,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     try {
       const currentUser = await getCurrentUser()
+      queryClient.clear()
       setUser(currentUser)
       setStatus('authenticated')
     } catch (error) {
       clearAccessToken()
       throw error
     }
-  }, [])
+  }, [queryClient])
 
   const logout = useCallback(async () => {
     try {

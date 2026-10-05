@@ -21,20 +21,37 @@ class FollowUpGroup(StrEnum):
 
 
 def _owned_followups_query(owner_id: UUID) -> Select[tuple[FollowUp]]:
+    # Follow-ups follow their lead's archive state, matching the dashboard and lead routes.
     return (
         select(FollowUp)
         .join(FollowUp.lead)
-        .where(Lead.owner_id == owner_id)
+        .where(Lead.owner_id == owner_id, Lead.is_archived.is_(False))
         .options(selectinload(FollowUp.lead))
     )
 
 
-def get_owned_followup(session: Session, owner_id: UUID, followup_id: UUID) -> FollowUp | None:
-    return session.scalar(_owned_followups_query(owner_id).where(FollowUp.id == followup_id))
+def get_owned_followup(
+    session: Session,
+    owner_id: UUID,
+    followup_id: UUID,
+    *,
+    for_update: bool = False,
+) -> FollowUp | None:
+    query = _owned_followups_query(owner_id).where(FollowUp.id == followup_id)
+    if for_update:
+        # Lock the row so a concurrent edit and completion re-check the committed state.
+        query = query.with_for_update(of=FollowUp).execution_options(populate_existing=True)
+    return session.scalar(query)
 
 
-def require_owned_followup(session: Session, owner_id: UUID, followup_id: UUID) -> FollowUp:
-    followup = get_owned_followup(session, owner_id, followup_id)
+def require_owned_followup(
+    session: Session,
+    owner_id: UUID,
+    followup_id: UUID,
+    *,
+    for_update: bool = False,
+) -> FollowUp:
+    followup = get_owned_followup(session, owner_id, followup_id, for_update=for_update)
     if followup is None:
         raise_not_found("follow-up")
     return followup

@@ -5,9 +5,10 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from app.models.enums import QuotationStatus
+from app.schemas.common import RequestModel
 
 
-class QuotationItemInput(BaseModel):
+class QuotationItemInput(RequestModel):
     model_config = ConfigDict(extra="forbid")
 
     description: str = Field(min_length=1, max_length=500)
@@ -23,7 +24,7 @@ class QuotationItemInput(BaseModel):
         return normalized
 
 
-class QuotationCreate(BaseModel):
+class QuotationCreate(RequestModel):
     model_config = ConfigDict(extra="forbid")
 
     issue_date: date
@@ -48,7 +49,7 @@ class QuotationCreate(BaseModel):
         return self
 
 
-class QuotationUpdate(BaseModel):
+class QuotationUpdate(RequestModel):
     model_config = ConfigDict(extra="forbid")
 
     issue_date: date | None = None
@@ -77,7 +78,7 @@ class QuotationUpdate(BaseModel):
         return self
 
 
-class QuotationStatusUpdate(BaseModel):
+class QuotationStatusUpdate(RequestModel):
     model_config = ConfigDict(extra="forbid")
 
     status: QuotationStatus

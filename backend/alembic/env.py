@@ -1,6 +1,6 @@
 from logging.config import fileConfig
 
-from sqlalchemy import create_engine, pool
+from sqlalchemy import Connection, create_engine, pool
 
 import app.models  # noqa: F401
 from alembic import context
@@ -30,18 +30,27 @@ def run_migrations_offline() -> None:
         context.run_migrations()
 
 
+def run_migrations_with_connection(connection: Connection) -> None:
+    context.configure(
+        connection=connection,
+        target_metadata=target_metadata,
+        compare_type=True,
+    )
+
+    with context.begin_transaction():
+        context.run_migrations()
+
+
 def run_migrations_online() -> None:
+    # Tests pass their own connection so migrations run against the isolated test database.
+    provided_connection = config.attributes.get("connection")
+    if provided_connection is not None:
+        run_migrations_with_connection(provided_connection)
+        return
+
     connectable = create_engine(settings.database_url, poolclass=pool.NullPool)
-
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection,
-            target_metadata=target_metadata,
-            compare_type=True,
-        )
-
-        with context.begin_transaction():
-            context.run_migrations()
+        run_migrations_with_connection(connection)
 
 
 if context.is_offline_mode():

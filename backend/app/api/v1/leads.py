@@ -1,12 +1,13 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, Response, status
+from fastapi import APIRouter, Query, Response, status
 from sqlalchemy.orm import Session
 
+from app.api.v1.params import PageQuery, PageSizeQuery, SearchQuery
 from app.core.errors import raise_not_found
 from app.dependencies.auth import CurrentUser
-from app.dependencies.database import get_db
+from app.dependencies.database import DbSession
 from app.models.enums import LeadSource, LeadStatus
 from app.models.lead import Lead
 from app.schemas.lead import LeadCreate, LeadListResponse, LeadResponse, LeadUpdate
@@ -33,7 +34,7 @@ def require_owned_lead(session: Session, owner_id: UUID, lead_id: UUID) -> Lead:
 def create_lead_endpoint(
     payload: LeadCreate,
     current_user: CurrentUser,
-    session: Annotated[Session, Depends(get_db)],
+    session: DbSession,
 ) -> Lead:
     return create_lead(session, current_user.id, payload)
 
@@ -41,7 +42,7 @@ def create_lead_endpoint(
 @router.get("/export")
 def export_leads_endpoint(
     current_user: CurrentUser,
-    session: Annotated[Session, Depends(get_db)],
+    session: DbSession,
 ) -> Response:
     filename = leads_export_filename()
     return Response(
@@ -57,10 +58,10 @@ def export_leads_endpoint(
 @router.get("", response_model=LeadListResponse)
 def list_leads_endpoint(
     current_user: CurrentUser,
-    session: Annotated[Session, Depends(get_db)],
-    page: Annotated[int, Query(ge=1)] = 1,
-    page_size: Annotated[int, Query(ge=1, le=100)] = 20,
-    search: Annotated[str | None, Query(max_length=100)] = None,
+    session: DbSession,
+    page: PageQuery = 1,
+    page_size: PageSizeQuery = 20,
+    search: SearchQuery = None,
     lead_status: Annotated[LeadStatus | None, Query(alias="status")] = None,
     source: LeadSource | None = None,
 ) -> LeadListResponse:
@@ -86,7 +87,7 @@ def list_leads_endpoint(
 def get_lead_endpoint(
     lead_id: UUID,
     current_user: CurrentUser,
-    session: Annotated[Session, Depends(get_db)],
+    session: DbSession,
 ) -> Lead:
     return require_owned_lead(session, current_user.id, lead_id)
 
@@ -96,7 +97,7 @@ def update_lead_endpoint(
     lead_id: UUID,
     payload: LeadUpdate,
     current_user: CurrentUser,
-    session: Annotated[Session, Depends(get_db)],
+    session: DbSession,
 ) -> Lead:
     lead = require_owned_lead(session, current_user.id, lead_id)
     return update_lead(lead, payload, session)
@@ -106,7 +107,7 @@ def update_lead_endpoint(
 def archive_lead_endpoint(
     lead_id: UUID,
     current_user: CurrentUser,
-    session: Annotated[Session, Depends(get_db)],
+    session: DbSession,
 ) -> Lead:
     lead = require_owned_lead(session, current_user.id, lead_id)
     return archive_lead(lead, session)

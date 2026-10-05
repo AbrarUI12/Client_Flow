@@ -102,7 +102,8 @@ export function FollowUpDialog({
       ref={dialogRef}
       onCancel={(event) => {
         event.preventDefault()
-        onClose()
+        // Closing mid-save would let a reopened dialog submit a duplicate reminder.
+        if (!isSubmitting) onClose()
       }}
       aria-labelledby="follow-up-dialog-title"
       className="m-auto w-[calc(100%_-_2rem)] max-w-lg rounded-2xl bg-white p-0 text-slate-900 shadow-2xl backdrop:bg-slate-950/55 backdrop:backdrop-blur-sm"
@@ -115,7 +116,7 @@ export function FollowUpDialog({
               {followUp ? 'Edit follow-up' : 'Add follow-up'}
             </h2>
           </div>
-          <button type="button" onClick={onClose} aria-label="Close follow-up dialog" className="grid size-10 place-items-center rounded-lg text-slate-500 hover:bg-slate-100">
+          <button type="button" disabled={isSubmitting} onClick={onClose} aria-label="Close follow-up dialog" className="grid size-10 place-items-center rounded-lg text-slate-500 hover:bg-slate-100 disabled:opacity-60">
             <X className="size-5" />
           </button>
         </div>

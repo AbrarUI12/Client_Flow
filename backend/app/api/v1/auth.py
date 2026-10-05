@@ -1,13 +1,10 @@
-from typing import Annotated
-
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Response, status
 from sqlalchemy import select
-from sqlalchemy.orm import Session
 
 from app.core.errors import raise_authentication_error
 from app.core.security import create_access_token, verify_password_or_dummy
 from app.dependencies.auth import CurrentUser
-from app.dependencies.database import get_db
+from app.dependencies.database import DbSession
 from app.models.user import User
 from app.schemas.auth import CurrentUserResponse, LoginRequest, TokenResponse
 
@@ -17,7 +14,7 @@ router = APIRouter(prefix="/auth", tags=["authentication"])
 @router.post("/login", response_model=TokenResponse)
 def login(
     credentials: LoginRequest,
-    session: Annotated[Session, Depends(get_db)],
+    session: DbSession,
 ) -> TokenResponse:
     email = str(credentials.email).strip().lower()
     user = session.scalar(select(User).where(User.email == email))

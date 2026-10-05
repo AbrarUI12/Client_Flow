@@ -1,6 +1,5 @@
-from sqlalchemy import create_engine, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
-from sqlalchemy.pool import StaticPool
 
 import app.models  # noqa: F401
 from app.core.config import Settings
@@ -28,23 +27,17 @@ def test_metadata_contains_complete_schema() -> None:
     assert item_foreign_key.ondelete == "CASCADE"
 
 
-def test_demo_user_seed_is_idempotent() -> None:
-    engine = create_engine(
-        "sqlite+pysqlite:///:memory:",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
-    Base.metadata.create_all(engine)
-    settings = Settings(_env_file=None)
+def test_demo_user_seed_is_idempotent(db_session: Session) -> None:
+    settings = Settings(_env_file=None, demo_user_email="seed-check@clientflow.app")
 
-    with Session(engine) as session:
-        first_user, first_created = create_demo_user(session, settings)
-        second_user, second_created = create_demo_user(session, settings)
-        users = session.scalars(select(User)).all()
+    first_user, first_created = create_demo_user(db_session, settings)
+    second_user, second_created = create_demo_user(db_session, settings)
+    users = db_session.scalars(
+        select(User).where(User.email == "seed-check@clientflow.app")
+    ).all()
 
     assert first_created is True
     assert second_created is False
     assert first_user.id == second_user.id
     assert len(users) == 1
-    assert users[0].email == "demo@clientflow.app"
     assert users[0].password_hash.startswith("$argon2")

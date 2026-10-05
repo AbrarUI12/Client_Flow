@@ -63,7 +63,7 @@ def calculate_quotation(
 
     if any(value > MAX_MONEY for value in (subtotal, discount_amount, tax_amount, total)):
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail={
                 "code": "QUOTATION_TOTAL_TOO_LARGE",
                 "message": "The calculated quotation amount exceeds the supported limit.",
@@ -84,26 +84,33 @@ def _quotation_load_options() -> tuple[object, ...]:
 
 
 def _owned_quotations_query(owner_id: UUID) -> Select[tuple[Quotation]]:
+    # Quotations follow their lead's archive state, matching the dashboard and lead routes.
     return (
         select(Quotation)
         .join(Quotation.lead)
-        .where(Lead.owner_id == owner_id)
+        .where(Lead.owner_id == owner_id, Lead.is_archived.is_(False))
         .options(*_quotation_load_options())
     )
 
 
-def get_owned_quotation(session: Session, owner_id: UUID, quotation_id: UUID) -> Quotation | None:
-    return session.scalar(_owned_quotations_query(owner_id).where(Quotation.id == quotation_id))
+def get_owned_quotation(
+    session: Session,
+    owner_id: UUID,
+    quotation_id: UUID,
+    *,
+    for_update: bool = False,
+) -> Quotation | None:
+    query = _owned_quotations_query(owner_id).where(Quotation.id == quotation_id)
+    if for_update:
+        # Lock the row so concurrent edits or transitions re-check the committed status.
+        query = query.with_for_update(of=Quotation).execution_options(populate_existing=True)
+    return session.scalar(query)
 
 
 def _next_quote_number(session: Session, issue_date: date) -> str:
-    bind = session.get_bind()
-    if bind.dialect.name == "postgresql":
-        sequence_value = session.scalar(select(quotation_number_sequence.next_value()))
-        assert sequence_value is not None
-    else:
-        # SQLite is used only by isolated unit tests; PostgreSQL uses the concurrency-safe sequence.
-        sequence_value = (session.scalar(select(func.count()).select_from(Quotation)) or 0) + 1
+    # The PostgreSQL sequence is concurrency-safe; gaps after rollbacks are acceptable.
+    sequence_value = session.scalar(select(quotation_number_sequence.next_value()))
+    assert sequence_value is not None
     return f"Q-{issue_date.year}-{sequence_value:06d}"
 
 
@@ -198,7 +205,7 @@ def update_draft_quotation(
     valid_until = payload.valid_until if payload.valid_until is not None else quotation.valid_until
     if valid_until < issue_date:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail={
                 "code": "INVALID_QUOTATION_DATE_RANGE",
                 "message": "The valid-until date must be on or after the issue date.",
@@ -283,8 +290,14 @@ def transition_quotation_status(
     return require_owned_quotation(session, quotation.lead.owner_id, quotation.id)
 
 
-def require_owned_quotation(session: Session, owner_id: UUID, quotation_id: UUID) -> Quotation:
-    quotation = get_owned_quotation(session, owner_id, quotation_id)
+def require_owned_quotation(
+    session: Session,
+    owner_id: UUID,
+    quotation_id: UUID,
+    *,
+    for_update: bool = False,
+) -> Quotation:
+    quotation = get_owned_quotation(session, owner_id, quotation_id, for_update=for_update)
     if quotation is None:
         from app.core.errors import raise_not_found
 

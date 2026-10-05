@@ -1,12 +1,13 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, Response, status
+from fastapi import APIRouter, Query, Response, status
 from sqlalchemy.orm import Session
 
+from app.api.v1.params import PageQuery, PageSizeQuery, SearchQuery
 from app.core.errors import raise_not_found
 from app.dependencies.auth import CurrentUser
-from app.dependencies.database import get_db
+from app.dependencies.database import DbSession
 from app.models.enums import QuotationStatus
 from app.models.lead import Lead
 from app.models.quotation import Quotation
@@ -58,7 +59,7 @@ def create_quotation_endpoint(
     lead_id: UUID,
     payload: QuotationCreate,
     current_user: CurrentUser,
-    session: Annotated[Session, Depends(get_db)],
+    session: DbSession,
 ) -> Quotation:
     lead = require_active_owned_lead(session, current_user.id, lead_id)
     return create_quotation(session, lead, payload)
@@ -68,9 +69,9 @@ def create_quotation_endpoint(
 def list_lead_quotations_endpoint(
     lead_id: UUID,
     current_user: CurrentUser,
-    session: Annotated[Session, Depends(get_db)],
-    page: Annotated[int, Query(ge=1)] = 1,
-    page_size: Annotated[int, Query(ge=1, le=100)] = 20,
+    session: DbSession,
+    page: PageQuery = 1,
+    page_size: PageSizeQuery = 20,
     quotation_status: Annotated[QuotationStatus | None, Query(alias="status")] = None,
 ) -> QuotationListResponse:
     require_active_owned_lead(session, current_user.id, lead_id)
@@ -89,10 +90,10 @@ def list_lead_quotations_endpoint(
 @router.get("/quotations", response_model=QuotationListResponse)
 def list_quotations_endpoint(
     current_user: CurrentUser,
-    session: Annotated[Session, Depends(get_db)],
-    page: Annotated[int, Query(ge=1)] = 1,
-    page_size: Annotated[int, Query(ge=1, le=100)] = 20,
-    search: Annotated[str | None, Query(max_length=100)] = None,
+    session: DbSession,
+    page: PageQuery = 1,
+    page_size: PageSizeQuery = 20,
+    search: SearchQuery = None,
     quotation_status: Annotated[QuotationStatus | None, Query(alias="status")] = None,
 ) -> QuotationListResponse:
     items, total = list_owned_quotations(
@@ -110,7 +111,7 @@ def list_quotations_endpoint(
 def get_quotation_endpoint(
     quotation_id: UUID,
     current_user: CurrentUser,
-    session: Annotated[Session, Depends(get_db)],
+    session: DbSession,
 ) -> Quotation:
     return require_owned_quotation(session, current_user.id, quotation_id)
 
@@ -119,7 +120,7 @@ def get_quotation_endpoint(
 def download_quotation_pdf_endpoint(
     quotation_id: UUID,
     current_user: CurrentUser,
-    session: Annotated[Session, Depends(get_db)],
+    session: DbSession,
 ) -> Response:
     quotation = require_owned_quotation(session, current_user.id, quotation_id)
     filename = f"quotation-{quotation.quote_number}.pdf"
@@ -138,9 +139,9 @@ def update_quotation_endpoint(
     quotation_id: UUID,
     payload: QuotationUpdate,
     current_user: CurrentUser,
-    session: Annotated[Session, Depends(get_db)],
+    session: DbSession,
 ) -> Quotation:
-    quotation = require_owned_quotation(session, current_user.id, quotation_id)
+    quotation = require_owned_quotation(session, current_user.id, quotation_id, for_update=True)
     return update_draft_quotation(session, quotation, payload)
 
 
@@ -149,7 +150,7 @@ def update_quotation_status_endpoint(
     quotation_id: UUID,
     payload: QuotationStatusUpdate,
     current_user: CurrentUser,
-    session: Annotated[Session, Depends(get_db)],
+    session: DbSession,
 ) -> Quotation:
-    quotation = require_owned_quotation(session, current_user.id, quotation_id)
+    quotation = require_owned_quotation(session, current_user.id, quotation_id, for_update=True)
     return transition_quotation_status(session, quotation, payload.status)

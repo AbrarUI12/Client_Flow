@@ -5,9 +5,10 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 
 from app.models.enums import LeadSource, LeadStatus
+from app.schemas.common import RequestModel
 
 
-class LeadFields(BaseModel):
+class LeadFields(RequestModel):
     contact_name: str = Field(min_length=1, max_length=100)
     company: str | None = Field(default=None, max_length=150)
     email: EmailStr | None = None
@@ -46,7 +47,7 @@ class LeadCreate(LeadFields):
     pass
 
 
-class LeadUpdate(BaseModel):
+class LeadUpdate(RequestModel):
     contact_name: str | None = Field(default=None, min_length=1, max_length=100)
     company: str | None = Field(default=None, max_length=150)
     email: EmailStr | None = None

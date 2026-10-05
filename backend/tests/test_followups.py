@@ -161,9 +161,9 @@ def test_edit_incomplete_and_complete_idempotently(
     assert edited.json()["note"] == "Updated note"
     assert first_completion.status_code == repeated_completion.status_code == 200
     assert first_completion.json()["completed_at"] is not None
-    assert repeated_completion.json()["completed_at"].rstrip("Z") == first_completion.json()[
-        "completed_at"
-    ].rstrip("Z")
+    assert datetime.fromisoformat(
+        repeated_completion.json()["completed_at"]
+    ) == datetime.fromisoformat(first_completion.json()["completed_at"])
     assert edit_completed.status_code == 409
     assert completed_group["total"] == 1
     assert completed_group["items"][0]["id"] == followup["id"]

@@ -19,6 +19,7 @@ import { z } from 'zod'
 import { useToast } from '../../components/ui/toast'
 import { ApiError } from '../../lib/apiClient'
 import { useAuth } from '../auth/authStore'
+import { dashboardKeys } from '../dashboard/queryKeys'
 import { getLead } from '../leads/api'
 import { formatMoney } from '../leads/formatting'
 import { leadKeys } from '../leads/queryKeys'
@@ -149,19 +150,35 @@ export function QuotationBuilderPage({ mode }: { mode: 'create' | 'edit' }) {
       currency={user?.currency_code || 'USD'}
       onSaved={async (saved, intent) => {
         let finalQuotation = saved
+        let sendError: unknown = null
         if (intent === 'sent') {
-          finalQuotation = await transitionQuotation(saved.id, 'SENT')
+          try {
+            finalQuotation = await transitionQuotation(saved.id, 'SENT')
+          } catch (error) {
+            // The draft already exists, so leave this form; retrying here would create a duplicate.
+            sendError = error
+          }
         }
         queryClient.setQueryData(quotationKeys.detail(finalQuotation.id), finalQuotation)
         await Promise.all([
           queryClient.invalidateQueries({ queryKey: quotationKeys.lists() }),
           queryClient.invalidateQueries({ queryKey: leadKeys.all }),
+          queryClient.invalidateQueries({ queryKey: dashboardKeys.all }),
         ])
-        notify({
-          title: intent === 'sent' ? 'Quotation saved and sent' : 'Quotation draft saved',
-          description: finalQuotation.quote_number,
-          tone: 'success',
-        })
+        if (sendError) {
+          const reason = sendError instanceof ApiError ? ` ${sendError.message}` : ''
+          notify({
+            title: 'Draft saved but not sent',
+            description: `${finalQuotation.quote_number} was saved as a draft.${reason} You can mark it sent from this page.`,
+            tone: 'error',
+          })
+        } else {
+          notify({
+            title: intent === 'sent' ? 'Quotation saved and sent' : 'Quotation draft saved',
+            description: finalQuotation.quote_number,
+            tone: 'success',
+          })
+        }
         navigate(`/quotations/${finalQuotation.id}`, { replace: true })
       }}
     />

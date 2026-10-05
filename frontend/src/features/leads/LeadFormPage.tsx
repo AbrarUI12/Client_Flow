@@ -3,6 +3,7 @@ import { ArrowLeft, CircleAlert, LoaderCircle } from 'lucide-react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { useToast } from '../../components/ui/toast'
+import { dashboardKeys } from '../dashboard/queryKeys'
 import { createLead, getLead, updateLead } from './api'
 import { LeadForm } from './LeadForm'
 import type { LeadFormValues } from './LeadForm'
@@ -52,7 +53,10 @@ export function LeadFormPage({ mode }: { mode: 'create' | 'edit' }) {
       isEditing ? updateLead(id, payload) : createLead(payload),
     onSuccess: async (savedLead) => {
       queryClient.setQueryData(leadKeys.detail(savedLead.id), savedLead)
-      await queryClient.invalidateQueries({ queryKey: leadKeys.lists() })
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: leadKeys.lists() }),
+        queryClient.invalidateQueries({ queryKey: dashboardKeys.all }),
+      ])
       notify({
         title: isEditing ? 'Lead updated' : 'Lead created',
         description: `${savedLead.contact_name} is ready in your pipeline.`,

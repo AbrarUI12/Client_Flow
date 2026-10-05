@@ -3,8 +3,17 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+from app.schemas.common import RequestModel
 
-class FollowUpCreate(BaseModel):
+
+def to_utc(value: datetime) -> datetime:
+    try:
+        return value.astimezone(UTC)
+    except OverflowError as error:
+        raise ValueError("due_at is outside the supported date range") from error
+
+
+class FollowUpCreate(RequestModel):
     model_config = ConfigDict(extra="forbid")
 
     due_at: datetime
@@ -23,10 +32,10 @@ class FollowUpCreate(BaseModel):
     def require_timezone(cls, value: datetime) -> datetime:
         if value.tzinfo is None or value.utcoffset() is None:
             raise ValueError("due_at must include a timezone offset")
-        return value.astimezone(UTC)
+        return to_utc(value)
 
 
-class FollowUpUpdate(BaseModel):
+class FollowUpUpdate(RequestModel):
     model_config = ConfigDict(extra="forbid")
 
     due_at: datetime | None = None
@@ -47,7 +56,7 @@ class FollowUpUpdate(BaseModel):
     def require_timezone(cls, value: datetime | None) -> datetime | None:
         if value is not None and (value.tzinfo is None or value.utcoffset() is None):
             raise ValueError("due_at must include a timezone offset")
-        return value.astimezone(UTC) if value is not None else None
+        return to_utc(value) if value is not None else None
 
     @model_validator(mode="after")
     def prevent_explicit_nulls(self) -> "FollowUpUpdate":

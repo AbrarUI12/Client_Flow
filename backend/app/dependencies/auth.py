@@ -4,11 +4,10 @@ from uuid import UUID
 import jwt
 from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from sqlalchemy.orm import Session
 
 from app.core.errors import raise_authentication_error
 from app.core.security import decode_access_token
-from app.dependencies.database import get_db
+from app.dependencies.database import DbSession
 from app.models.user import User
 
 bearer_scheme = HTTPBearer(auto_error=False)
@@ -16,7 +15,7 @@ bearer_scheme = HTTPBearer(auto_error=False)
 
 def get_current_user(
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_scheme)],
-    session: Annotated[Session, Depends(get_db)],
+    session: DbSession,
 ) -> User:
     if credentials is None or credentials.scheme.lower() != "bearer":
         raise_authentication_error()

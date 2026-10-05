@@ -17,8 +17,11 @@ import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { useToast } from '../../components/ui/toast'
 import { ApiError } from '../../lib/apiClient'
 import { useAuth } from '../auth/authStore'
+import { dashboardKeys } from '../dashboard/queryKeys'
+import { followUpKeys } from '../followups/queryKeys'
 import { LeadFollowUpsSection } from '../followups/LeadFollowUpsSection'
 import { LeadQuotationsSection } from '../quotations/LeadQuotationsSection'
+import { quotationKeys } from '../quotations/queryKeys'
 import { archiveLead, getLead } from './api'
 import { formatDate, formatMoney, sourceLabels } from './formatting'
 import { leadKeys } from './queryKeys'
@@ -43,7 +46,13 @@ export function LeadDetailPage() {
     mutationFn: () => archiveLead(id),
     onSuccess: async () => {
       queryClient.removeQueries({ queryKey: leadKeys.detail(id) })
-      await queryClient.invalidateQueries({ queryKey: leadKeys.lists() })
+      // Archiving hides the lead's quotations and follow-ups everywhere, including the dashboard.
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: leadKeys.lists() }),
+        queryClient.invalidateQueries({ queryKey: quotationKeys.all }),
+        queryClient.invalidateQueries({ queryKey: followUpKeys.all }),
+        queryClient.invalidateQueries({ queryKey: dashboardKeys.all }),
+      ])
       setConfirmArchive(false)
       notify({
         title: 'Lead archived',

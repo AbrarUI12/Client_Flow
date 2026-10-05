@@ -55,6 +55,7 @@ def decode_access_token(token: str) -> dict[str, object]:
         token,
         settings.secret_key.get_secret_value(),
         algorithms=[settings.jwt_algorithm],
+        options={"require": ["exp", "iat", "sub", "type"]},
     )
     if payload.get("type") != "access":
         raise jwt.InvalidTokenError("Unexpected token type")

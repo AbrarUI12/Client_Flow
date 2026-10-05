@@ -1475,6 +1475,64 @@ Complete or confirm tests for:
 test: harden critical workflows for release
 ```
 
+## Status
+
+```text
+IMPLEMENTED AND VERIFIED — 2026-10-05
+```
+
+The backend suite now runs only on PostgreSQL. A session fixture rebuilds a dedicated `*_test`
+database from the Alembic migrations, and every test runs inside one rolled-back outer
+transaction, so results are deterministic and no data leaks between tests. A six-dimension audit
+covered secrets, authentication, ownership, input safety, transactions, and the frontend. Its
+verified findings were fixed, and each fix is guarded by a test:
+
+- The request session commits or rolls back before the response is sent, using one
+  function-scoped dependency shared by routes and authentication.
+- Production startup refuses a public or short `SECRET_KEY`, the development `DATABASE_URL`, and
+  wildcard or empty `CORS_ORIGINS`. CORS is limited to the methods and headers the SPA uses, with
+  no credentials.
+- JWTs must carry `exp`, `iat`, `sub`, and `type`.
+- Validation errors never echo submitted values.
+- NUL text, out-of-range dates, and huge page numbers return 422 instead of 500.
+- Quotations and follow-ups under archived leads are hidden everywhere, consistent with the
+  dashboard.
+- Quotation and follow-up mutations lock their row.
+- PDF single-line fields cannot break page layout.
+- The demo seed marker is scoped to its owner.
+- In the frontend, the query cache is cleared between sessions, and "Save and mark sent" cannot
+  create a duplicate after a failed send step.
+- The follow-up dialog cannot close mid-save, and lead changes refresh the dashboard.
+
+Evidence:
+
+- 128 backend tests pass on PostgreSQL 17 across repeated runs, and the test database is empty
+  afterward.
+- The suite covers:
+  - a public/protected route inventory checked against OpenAPI;
+  - 401 responses on all 20 protected operations;
+  - forged and incomplete tokens;
+  - indistinguishable login failures;
+  - Argon2id parameters;
+  - production settings;
+  - CORS;
+  - hidden 500 internals;
+  - a commit failure reported as a 500;
+  - malformed IDs;
+  - a cross-tenant 404 matrix showing foreign data unchanged;
+  - archive rules with dashboard parity;
+  - rollback of failed multi-record writes;
+  - every illegal transition;
+  - duplicate submissions;
+  - real two-connection row locks;
+  - a migration round trip with no model drift;
+  - seed atomicity.
+- Reverting each key fix makes its guard test fail.
+- Ruff, oxlint, `tsc -b`, the e2e type check, the production build, and `git diff --check` are
+  clean.
+- All 10 Playwright tests pass, including a new single-run MVP happy path that double-clicks
+  every submit and asserts one record per action.
+
 ---
 
 # Session 14 — Deployment and Production Verification

@@ -29,3 +29,11 @@ Create a new migration after changing a model:
 alembic revision --autogenerate -m "describe the schema change"
 ```
 
+Run the tests against PostgreSQL. The default `TEST_DATABASE_URL` points at a `clientflow_test`
+database on the Docker Compose server and creates it when missing. Any override must name a
+database ending in `_test`, because each run rebuilds its schema from the migrations:
+
+```powershell
+$env:TEST_DATABASE_URL = "postgresql+psycopg://clientflow:clientflow@localhost:5432/clientflow_test"
+pytest
+```

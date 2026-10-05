@@ -2,8 +2,10 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
+from app.schemas.common import RequestModel
 
-class LoginRequest(BaseModel):
+
+class LoginRequest(RequestModel):
     email: EmailStr
     password: str = Field(min_length=1, max_length=1024)
 

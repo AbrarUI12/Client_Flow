@@ -1,6 +1,6 @@
 # ClientFlow Agent Handoff
 
-Last updated: 2026-10-05, after Session 12 was pushed and before Session 13 implementation.
+Last updated: 2026-10-05, after Session 13 was implemented, verified, and pushed.
 
 This file is the fast-start handoff for any new coding session. Read it before making changes,
 then read the current session in `session.md`. Keep this file current whenever a session changes
@@ -83,17 +83,28 @@ npm run build
 npm run test:e2e
 ```
 
-PostgreSQL-specific tests require `TEST_DATABASE_URL`. On this workstation Docker is unavailable,
-so an ignored portable PostgreSQL 17.11 installation exists under `.tmp/postgres-portable`, runs on
-`127.0.0.1:55432`, and uses:
+The whole backend suite runs on PostgreSQL. `TEST_DATABASE_URL` defaults to
+`postgresql+psycopg://clientflow:clientflow@localhost:5432/clientflow_test`, which matches Docker
+Compose. The fixture creates the database if needed, refuses any name that does not end in `_test`,
+drops and rebuilds its `public` schema with Alembic once per run, and runs each test inside a
+rolled-back outer transaction. On this workstation Docker is unavailable, so an ignored portable
+PostgreSQL 17.11 installation exists under `.tmp/postgres-portable` on `127.0.0.1:55432`:
 
 ```text
-postgresql+psycopg://postgres@127.0.0.1:55432/clientflow
+Dev/demo database (API, Playwright): postgresql+psycopg://postgres@127.0.0.1:55432/clientflow
+Backend tests:                       postgresql+psycopg://postgres@127.0.0.1:55432/clientflow_test
 ```
 
-The portable cluster can be checked or stopped with `pg_ctl.exe` in that folder. Do not commit the
-`.tmp` directory. At this update PostgreSQL, Vite on port 5173, and Uvicorn on port 8000 are running,
-but future sessions must verify process state rather than assuming it.
+Start the cluster from the repository root:
+
+```powershell
+.tmp\postgres-portable\pgsql\bin\pg_ctl.exe -D .tmp\postgres-portable\data -l .tmp\postgres-portable\postgres.log -o "-p 55432 -h 127.0.0.1" -w start
+```
+
+It was terminated externally once during Session 13 and recovered cleanly. Run the API with
+`DATABASE_URL` set to the dev database (no `backend/.env` exists here). Playwright needs Uvicorn on
+8000 and Vite on 5173 already running and writes uniquely named records into the dev database. Do
+not commit `.tmp`. Always verify process state rather than assuming it.
 
 Demo credentials (development-only, intentionally public):
 
@@ -121,8 +132,9 @@ Currency: BDT
 | 10 | Added owned paginated quotation PDFs and safe active-lead CSV exports, authenticated browser downloads, content tests, and mobile coverage | `3f71881` |
 | 11 | Added deterministic screenshot-ready demo data, idempotent normal seed, isolated demo-only reset, production refusal, and tenant-preservation tests | `439e9e6` |
 | 12 | Added coherent responsive polish, shared notifications, focus-managed confirmations/navigation, accessible forms/titles/404, and multi-breakpoint browser coverage | `5f9af7c` |
+| 13 | PostgreSQL-only rollback-isolated suite (128 tests), audit-driven security/reliability fixes, commit-before-response sessions, production config guards, row locks, archive consistency, and a double-click-safe MVP browser test | (this commit) |
 
-Sessions 0-12 are marked implemented and verified in `session.md` and are on `origin/main`.
+Sessions 0-13 are marked implemented and verified in `session.md` and are on `origin/main`.
 
 ## Important implemented behavior
 
@@ -131,13 +143,37 @@ Sessions 0-12 are marked implemented and verified in `session.md` and are on `or
 - Bearer JWT access tokens live in `sessionStorage`, not persistent local storage.
 - The central API client attaches auth and emits an unauthorized event on 401.
 - Login errors do not distinguish unknown users from bad passwords.
-- Every business route depends on the current active user.
+- Every business route depends on the current active user. A route-inventory test checks this
+  against OpenAPI.
+- JWT decoding requires `exp`, `iat`, `sub`, and `type`. Passwords are Argon2id.
+- The frontend clears the TanStack Query cache at login, logout, and 401, so one account's cached
+  data never renders for the next account in the same tab.
+
+### Transactions, validation, and production configuration
+
+- `DbSession` in `dependencies/database.py` is the only database dependency. It is function-scoped,
+  so the commit or rollback finishes before the response is sent. Routes and `get_current_user`
+  share one session per request.
+- Quotation edit/status and follow-up edit/complete load their row with `SELECT ... FOR UPDATE`, so
+  concurrent conflicting actions serialize and the loser gets the normal 409.
+- Request schemas extend `schemas/common.py:RequestModel`, which rejects NUL characters with 422.
+  Shared list query parameters in `api/v1/params.py` bound `page` to 100,000 and validate
+  `search`. Out-of-range follow-up dates return 422.
+- The 422 handler omits submitted `input` values, so passwords are never echoed and malformed
+  Unicode cannot crash the response. Unhandled errors return a plain `Internal Server Error` without
+  details.
+- With `ENVIRONMENT=production`, `Settings` refuses a public or under-32-byte `SECRET_KEY`, the
+  development `DATABASE_URL`, and wildcard or empty `CORS_ORIGINS`. CORS allows only
+  GET/POST/PATCH with `Accept`, `Authorization`, and `Content-Type`, exposes
+  `Content-Disposition`, and does not allow credentials.
 
 ### Leads
 
 - All lead access is scoped by `owner_id`; foreign records return the same structured 404 as missing
   records.
-- Archived leads disappear from normal detail and list queries.
+- Archived leads disappear from normal detail and list queries. Their quotations and follow-ups
+  are also hidden from every list, detail, mutation, and PDF route (structured 404), which keeps the
+  feature pages consistent with dashboard metrics. The rows remain stored.
 - Lists support escaped case-insensitive search, status/source filters, deterministic ordering, and
   pagination.
 - Frontend pages: `/leads`, `/leads/new`, `/leads/:id`, `/leads/:id/edit`.
@@ -224,25 +260,33 @@ Sessions 0-12 are marked implemented and verified in `session.md` and are on `or
   feedback, mobile 200% text, and no page overflow at 390/768/1280/1600 widths. Manual screenshot
   QA covered the populated desktop dashboard and mobile lead list.
 
-## Next session: Session 13
+## Next session: Session 14
 
-Session 12 is pushed as `5f9af7c`. Start Session 13 from that confirmed remote boundary and a clean
-tree (apart from the handoff update commit that immediately follows it).
+Session 13 is implemented and verified; its commit is recorded in the table above after the push.
+Start Session 14 only from a clean tree that matches `origin/main`.
 
-Session 13 objective: prove release-critical behavior and remove security/reliability blockers.
-Read the full Session 13 section in `session.md`. Complete the ownership/authentication/business-
-rule suite on PostgreSQL with deterministic isolation, then run type/build/browser happy-path gates.
-Audit committed files and runtime behavior for secrets, exact CORS, authentication on every
-protected route, ownership in every record query, enumeration-safe login errors, Argon2, sensitive
-logging, UUID validation, CSV/PDF safety, and production error leakage. Verify rollback for failed
-multi-record work, duplicate-submit protection, stable missing-resource and invalid-transition
-errors, and clean empty-database migrations. Record concrete evidence for every release claim.
+Session 14 objective: deploy the frontend, API, and PostgreSQL as a provider-independent production
+system, and run the full MVP smoke test publicly. Read the full Session 14 section in `session.md`.
+Deployment needs the user's own hosting accounts, so confirm providers and access with the user
+first. Carry these Session 13 findings into it:
 
-## Remaining roadmap after Session 12
+- Provider research (2026-10-05):
+  - Render free web services sleep after 15 minutes idle, and the free tier has no pre-deploy
+    command, so run `alembic upgrade head` in the start command.
+  - Render free Postgres expires after 30 days. Neon's free plan is permanent with 0.5-1 GB and
+    scale-to-zero.
+  - Re-verify current pricing before choosing.
+- Production `Settings` now fails fast without a private `SECRET_KEY`, a real `DATABASE_URL`, and
+  explicit `CORS_ORIGINS`.
+- The login page's "Fill demo email and password" helper hard-codes the development password, while
+  the production seed refuses that password. Decide how the public demo credentials are configured
+  and shown.
+- `/docs` is hidden in production but `/openapi.json` is still served. Decide intentionally.
+- `/health` does not touch the database. Consider this when configuring the platform health check.
+- GitHub Actions must provide a PostgreSQL service and a `TEST_DATABASE_URL` ending in `_test`.
 
-- Session 13 — Release hardening: complete ownership/business/security suite on PostgreSQL,
-  deterministic isolation, frontend/build/browser gates, secret/CORS/logging/error review,
-  transaction/duplicate/migration reliability review.
+## Remaining roadmap after Session 13
+
 - Session 14 — Deployment: choose suitable current providers, managed PostgreSQL, HTTPS API/static
   frontend, exact production env/CORS, migrations and seed, SPA fallback, metadata/favicon, GitHub
   Actions, and full public production smoke test. Provider research must use current information.
@@ -255,10 +299,15 @@ its detailed requirements and completion gates.
 
 ## Current verification baseline and known non-blockers
 
-- Session 12 baseline: backend Ruff clean and `40 passed` with all PostgreSQL integration tests;
-  frontend lint and production build clean; `9` Playwright tests pass. Coverage includes all primary
-  workflows plus keyboard/focus behavior, notifications, 404/title behavior, 200% mobile text, and
-  no-overflow checks at mobile/tablet/laptop/wide breakpoints.
+- Session 13 baseline:
+  - Backend: Ruff clean and `128 passed` on PostgreSQL, deterministic across repeated runs, with
+    the test database empty afterward. The suite covers authentication/route inventory, a tenant
+    isolation matrix, archive rules, input safety, rollback, conflicts, row locks, the migration
+    round trip with drift detection, and seed safety. Reverting each key fix makes its guard test
+    fail.
+  - Frontend: lint, `tsc -b`, the ad-hoc e2e type check, and the production build are clean.
+  - Browser: `10` Playwright tests pass. The new `e2e/mvp.spec.ts` runs the full MVP flow once and
+    double-clicks submits to prove one record per action.
 - Expected non-blocking warnings: Starlette TestClient warns about future `httpx2`; Vite warns that
   the main minified bundle exceeds 500 kB. Address bundle splitting during polish/hardening if it
   remains useful; neither warning currently breaks a gate.

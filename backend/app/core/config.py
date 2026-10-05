@@ -2,8 +2,14 @@ from functools import lru_cache
 from typing import Literal
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from pydantic import Field, SecretStr, field_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+DEVELOPMENT_DATABASE_URL = "postgresql+psycopg://clientflow:clientflow@localhost:5432/clientflow"
+DEVELOPMENT_SECRET_KEY = "development-only-change-me-at-least-32-bytes"
+# Values that are public in this repository and must never sign production tokens.
+PUBLIC_SECRET_KEYS = {DEVELOPMENT_SECRET_KEY, "replace-with-a-long-random-secret"}
+MIN_SECRET_KEY_BYTES = 32
 
 
 class Settings(BaseSettings):
@@ -19,8 +25,8 @@ class Settings(BaseSettings):
     environment: Literal["development", "test", "production"] = "development"
     api_v1_prefix: str = "/api/v1"
 
-    database_url: str = "postgresql+psycopg://clientflow:clientflow@localhost:5432/clientflow"
-    secret_key: SecretStr = SecretStr("development-only-change-me-at-least-32-bytes")
+    database_url: str = DEVELOPMENT_DATABASE_URL
+    secret_key: SecretStr = SecretStr(DEVELOPMENT_SECRET_KEY)
     access_token_expire_minutes: int = Field(default=60, gt=0)
     jwt_algorithm: Literal["HS256", "HS384", "HS512"] = "HS256"
     cors_origins: str = "http://localhost:5173"
@@ -66,6 +72,27 @@ class Settings(BaseSettings):
         except ZoneInfoNotFoundError as error:
             raise ValueError("DEMO_TIMEZONE must be a valid IANA timezone") from error
         return value
+
+    @model_validator(mode="after")
+    def validate_production_settings(self) -> "Settings":
+        if self.environment != "production":
+            return self
+
+        secret_key = self.secret_key.get_secret_value()
+        if (
+            secret_key in PUBLIC_SECRET_KEYS
+            or len(secret_key.encode("utf-8")) < MIN_SECRET_KEY_BYTES
+        ):
+            raise ValueError(
+                f"SECRET_KEY must be a private value of at least {MIN_SECRET_KEY_BYTES} bytes "
+                "in production"
+            )
+        if self.database_url == DEVELOPMENT_DATABASE_URL:
+            raise ValueError("DATABASE_URL must be configured in production")
+        origins = self.cors_origin_list
+        if not origins or "*" in origins:
+            raise ValueError("CORS_ORIGINS must list explicit origins in production")
+        return self
 
     @property
     def cors_origin_list(self) -> list[str]:

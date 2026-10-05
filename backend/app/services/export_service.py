@@ -108,6 +108,13 @@ def _pdf_text(value: object | None) -> str:
     return escape(str(value)).replace("\n", "<br/>")
 
 
+def _pdf_line(value: object | None) -> str:
+    """Keep single-line fields on one line so stray line breaks cannot create unsplittable rows."""
+    if value is None:
+        return ""
+    return escape(" ".join(str(value).split()))
+
+
 def _money(value: Decimal, currency_code: str) -> str:
     return f"{currency_code} {value:,.2f}"
 
@@ -185,14 +192,14 @@ def build_quotation_pdf(quotation: Quotation, user: User) -> bytes:
     )
 
     business_lines = [
-        Paragraph(_pdf_text(user.business_name), strong_style),
+        Paragraph(_pdf_line(user.business_name), strong_style),
         Paragraph(_pdf_text(user.business_address), body_style),
-        Paragraph(_pdf_text(user.business_phone), body_style),
-        Paragraph(_pdf_text(user.email), body_style),
+        Paragraph(_pdf_line(user.business_phone), body_style),
+        Paragraph(_pdf_line(user.email), body_style),
     ]
     quote_heading = [
         Paragraph("QUOTATION", title_style),
-        Paragraph(_pdf_text(quotation.quote_number), small_right),
+        Paragraph(_pdf_line(quotation.quote_number), small_right),
         Paragraph(f"Status: {_human_enum(quotation.status)}", small_right),
     ]
     header = Table([[business_lines, quote_heading]], colWidths=[110 * mm, 67 * mm])
@@ -208,10 +215,10 @@ def build_quotation_pdf(quotation: Quotation, user: User) -> bytes:
         )
     )
 
-    client_lines = [Paragraph(_pdf_text(quotation.lead.contact_name), strong_style)]
+    client_lines = [Paragraph(_pdf_line(quotation.lead.contact_name), strong_style)]
     for value in (quotation.lead.company, quotation.lead.email, quotation.lead.phone):
         if value:
-            client_lines.append(Paragraph(_pdf_text(value), body_style))
+            client_lines.append(Paragraph(_pdf_line(value), body_style))
     dates = [
         Paragraph(f"<b>Issue date</b><br/>{quotation.issue_date:%d %b %Y}", body_style),
         Paragraph(f"<b>Valid until</b><br/>{quotation.valid_until:%d %b %Y}", body_style),
@@ -247,7 +254,7 @@ def build_quotation_pdf(quotation: Quotation, user: User) -> bytes:
     for item in quotation.items:
         item_rows.append(
             [
-                Paragraph(_pdf_text(item.description), body_style),
+                Paragraph(_pdf_line(item.description), body_style),
                 Paragraph(format(item.quantity, "f"), small_right),
                 Paragraph(_money(item.unit_price, user.currency_code), small_right),
                 Paragraph(_money(item.line_total, user.currency_code), small_right),
