@@ -1,6 +1,6 @@
 # ClientFlow Agent Handoff
 
-Last updated: 2026-10-05, after Session 11 verification and before its push.
+Last updated: 2026-10-05, after Session 11 was pushed and before Session 12 implementation.
 
 This file is the fast-start handoff for any new coding session. Read it before making changes,
 then read the current session in `session.md`. Keep this file current whenever a session changes
@@ -119,10 +119,9 @@ Currency: BDT
 | 8 | Added timezone-aware follow-up scheduling, owned grouping, editing, idempotent completion, lead dialog/summaries, responsive grouped UI, and browser coverage | `6d81880` |
 | 9 | Added one-request owned dashboard metrics, pipeline counts, reminder/recent-lead read models, responsive UI, PostgreSQL aggregation tests, and browser refresh coverage | `4bfc7e7` |
 | 10 | Added owned paginated quotation PDFs and safe active-lead CSV exports, authenticated browser downloads, content tests, and mobile coverage | `3f71881` |
-| 11 | Added deterministic screenshot-ready demo data, idempotent normal seed, isolated demo-only reset, production refusal, and tenant-preservation tests | `feat: add realistic repeatable demo data` |
+| 11 | Added deterministic screenshot-ready demo data, idempotent normal seed, isolated demo-only reset, production refusal, and tenant-preservation tests | `439e9e6` |
 
-Sessions 0-11 are marked implemented and verified in `session.md`. Sessions 0-10 are on
-`origin/main`; Session 11 is the next commit/push at this handoff update.
+Sessions 0-11 are marked implemented and verified in `session.md` and are on `origin/main`.
 
 ## Important implemented behavior
 
@@ -210,8 +209,8 @@ Sessions 0-11 are marked implemented and verified in `session.md`. Sessions 0-10
 
 ## Next session: Session 12
 
-Session 11 has cleared its full verification gate. Commit and push it, then start Session 12 from a
-clean tree and confirmed remote boundary.
+Session 11 is pushed as `439e9e6`. Start Session 12 from that confirmed remote boundary and a clean
+tree (apart from the handoff update commit that immediately follows it).
 
 Session 12 objective: make the finished product visually coherent, responsive, accessible, and
 presentation-ready without adding scope. Read the full Session 12 section in `session.md`. Audit and
