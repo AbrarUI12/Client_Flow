@@ -1,6 +1,6 @@
 # ClientFlow Agent Handoff
 
-Last updated: 2026-10-05, after Session 8 verification and before its push.
+Last updated: 2026-10-05, after the Session 8 push and before Session 9 implementation.
 
 This file is the fast-start handoff for any new coding session. Read it before making changes,
 then read the current session in `session.md`. Keep this file current whenever a session changes
@@ -116,10 +116,9 @@ Currency: BDT
 | 5 follow-up | Aligned frontend lead sources with backend values (LinkedIn, Upwork, Fiverr, etc.) | `2a6dad7` |
 | 6 | Added server-authoritative quotation arithmetic, PostgreSQL sequence numbers, atomic item replacement, lists, ownership, and legal state transitions | `904bbba` |
 | 7 | Added exact-decimal quotation builder, list, detail, lead summaries, draft edit/send/accept UI, and lead-to-won browser flow | `bd30fc3` |
-| 8 | Added timezone-aware follow-up scheduling, owned grouping, editing, idempotent completion, lead dialog/summaries, responsive grouped UI, and browser coverage | `feat: add follow-up scheduling and completion` |
+| 8 | Added timezone-aware follow-up scheduling, owned grouping, editing, idempotent completion, lead dialog/summaries, responsive grouped UI, and browser coverage | `6d81880` |
 
-Sessions 0-8 are marked implemented and verified in `session.md`. Sessions 0-7 are already on
-`origin/main`; Session 8 is the next commit/push at this handoff update.
+Sessions 0-8 are marked implemented and verified in `session.md` and are on `origin/main`.
 
 ## Important implemented behavior
 
@@ -168,8 +167,8 @@ Sessions 0-8 are marked implemented and verified in `session.md`. Sessions 0-7 a
 
 ## Next session: Session 9
 
-Session 8 has cleared its full verification gate. Commit and push it if this has not yet happened,
-then start Session 9 only from a clean tree and confirmed remote boundary.
+Session 8 has cleared its full verification gate and is pushed. Start Session 9 from commit
+`6d81880` and a clean tree.
 
 Session 9 objective: replace the dashboard placeholder with one owned operational summary read
 model and responsive UI. Before implementation, read the full Session 9 section in `session.md`.
