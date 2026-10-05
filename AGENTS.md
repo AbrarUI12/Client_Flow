@@ -264,7 +264,8 @@ Sessions 0-13 are marked implemented and verified in `session.md` and are on `or
 ## Current session: Session 14
 
 Session 13 and its handoff are pushed as `e992556` and `6a8d961`. Session 14 repository preparation
-is pushed as `39bcc0b` but must not be marked complete until the public deployment and smoke test pass.
+is pushed as `39bcc0b`; the Supabase provider switch is pushed as `13ad531`. Session 14 must not be
+marked complete until the public deployment and smoke test pass.
 
 Implemented and pushed for Session 14:
 
@@ -288,6 +289,8 @@ Implemented and pushed for Session 14:
 - `render.yaml` validates against Render's official schema. A disposable production rehearsal
   migrated a blank database to head, seeded/no-op seeded, authenticated, and returned 200 for
   database health, docs, and schema with exact CORS; the database was then removed.
+- GitHub Actions run `37351674829` passed the PostgreSQL backend and frontend production-build jobs
+  after the Supabase deployment documentation was pushed.
 
 Next actions, in order:
 
