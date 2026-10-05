@@ -1,6 +1,6 @@
 # ClientFlow Agent Handoff
 
-Last updated: 2026-10-05, after Session 10 was pushed and before Session 11 implementation.
+Last updated: 2026-10-05, after Session 11 verification and before its push.
 
 This file is the fast-start handoff for any new coding session. Read it before making changes,
 then read the current session in `session.md`. Keep this file current whenever a session changes
@@ -119,8 +119,10 @@ Currency: BDT
 | 8 | Added timezone-aware follow-up scheduling, owned grouping, editing, idempotent completion, lead dialog/summaries, responsive grouped UI, and browser coverage | `6d81880` |
 | 9 | Added one-request owned dashboard metrics, pipeline counts, reminder/recent-lead read models, responsive UI, PostgreSQL aggregation tests, and browser refresh coverage | `4bfc7e7` |
 | 10 | Added owned paginated quotation PDFs and safe active-lead CSV exports, authenticated browser downloads, content tests, and mobile coverage | `3f71881` |
+| 11 | Added deterministic screenshot-ready demo data, idempotent normal seed, isolated demo-only reset, production refusal, and tenant-preservation tests | `feat: add realistic repeatable demo data` |
 
-Sessions 0-10 are marked implemented and verified in `session.md` and are on `origin/main`.
+Sessions 0-11 are marked implemented and verified in `session.md`. Sessions 0-10 are on
+`origin/main`; Session 11 is the next commit/push at this handoff update.
 
 ## Important implemented behavior
 
@@ -192,23 +194,36 @@ Sessions 0-10 are marked implemented and verified in `session.md` and are on `or
 - `pypdf` is a backend development dependency used to extract PDF content and verify page counts;
   ReportLab remains the runtime PDF generator.
 
-## Next session: Session 11
+### Demo data and reset
 
-Session 10 is pushed as `3f71881`. Start Session 11 from that confirmed remote boundary and a clean
-tree (apart from the handoff update commit that immediately follows it).
+- `python -m app.scripts.seed_demo_user` creates or reuses the demo account and adds a canonical
+  dataset only when its deterministic marker is absent. A repeat run is a no-op.
+- The dataset contains 30 fictional leads covering every lead status and all eight source values,
+  eight quotations covering Draft/Sent/Accepted/Rejected with 21 calculated line items, and 12
+  follow-ups split evenly across overdue/today/upcoming/completed relative to the seed date.
+- Stable UUIDv5 identifiers and reserved high-range display quote numbers make screenshots and
+  reset assertions predictable while dates stay useful whenever the data is reseeded.
+- `python -m app.scripts.seed_demo_user --reset` deletes quotation items, follow-ups, quotations,
+  and leads belonging only to the configured demo user, then recreates the dataset transactionally.
+  It preserves the user/password and every other tenant. Reset is unconditionally refused when
+  `ENVIRONMENT=production`.
 
-Session 11 objective: expand the seed workflow into deterministic, screenshot-ready demo data. Read
-the full Session 11 section in `session.md` before implementation. Create roughly 25-40 fictional
-leads spanning every status and several sources, about eight quotations across every state with at
-least 15 total items, and about 12 follow-ups spanning overdue/today/upcoming/completed. Normal seed
-must be idempotent. An explicit reset mode must delete and recreate only the demo user's business
-data, preserve all other users, and refuse unsafe production reset. Document and test empty seed,
-repeat seed, modified-data reset, deterministic restoration, relative dates, and tenant isolation.
+## Next session: Session 12
 
-## Remaining roadmap after Session 10
+Session 11 has cleared its full verification gate. Commit and push it, then start Session 12 from a
+clean tree and confirmed remote boundary.
 
-- Session 11 — Demo data/reset: deterministic 25-40 lead dataset, about eight quotations, about 12
-  follow-ups, all meaningful states, idempotent seed, demo-user-only reset, and production guard.
+Session 12 objective: make the finished product visually coherent, responsive, accessible, and
+presentation-ready without adding scope. Read the full Session 12 section in `session.md`. Audit and
+standardize visual primitives and status meanings; add consistent success/error notifications,
+pending protection, understandable business errors, consequential-action confirmations, and a
+useful 404 page. Check every primary route at mobile/tablet/laptop/wide sizes, eliminate accidental
+overflow, and keep actions findable. Complete keyboard/focus/dialog/label/contrast/document-title/
+enlarged-text accessibility checks. Remove tutorial/placeholder wording, normalize terminology and
+grammar, and ensure every empty state offers a next action.
+
+## Remaining roadmap after Session 11
+
 - Session 12 — UX/accessibility polish: shared visual primitives, notifications, confirmations,
   useful 404, all target breakpoints, keyboard/focus/dialog behavior, contrast, titles, enlarged
   text, and removal of all placeholder/tutorial content.
@@ -227,9 +242,10 @@ its detailed requirements and completion gates.
 
 ## Current verification baseline and known non-blockers
 
-- Session 10 baseline: backend Ruff clean; `37 passed` with all PostgreSQL integration tests enabled;
-  frontend lint clean; production build successful; `7` Playwright tests passed, including actual
-  CSV/PDF downloads, file-content checks, download filenames, and mobile export visibility.
+- Session 11 baseline: backend Ruff clean; `40 passed` with all PostgreSQL integration tests enabled.
+  An isolated PostgreSQL database also passed migration, empty seed, no-op repeat seed, modified-data
+  reset, exact 30/8/21/12 restoration, other-owner preservation, and production-mode reset refusal.
+  Frontend lint and production build are clean; all `7` Playwright workflows still pass.
 - Expected non-blocking warnings: Starlette TestClient warns about future `httpx2`; Vite warns that
   the main minified bundle exceeds 500 kB. Address bundle splitting during polish/hardening if it
   remains useful; neither warning currently breaks a gate.

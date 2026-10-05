@@ -52,6 +52,27 @@ Email: demo@clientflow.app
 Password: development-only-change-me
 ```
 
+## Demo dataset and reset
+
+The normal seed command creates the demo account plus a deterministic, screenshot-ready dataset of
+30 leads, 8 quotations with 21 items, and 12 timezone-relative follow-ups. Running it again is a
+no-op, so it is safe during normal development setup:
+
+```powershell
+cd backend
+python -m app.scripts.seed_demo_user
+```
+
+To discard and recreate only the configured demo user's business records, use the explicit reset
+flag. The demo account and password remain unchanged, and other users and their data are preserved:
+
+```powershell
+python -m app.scripts.seed_demo_user --reset
+```
+
+Reset is disabled when `ENVIRONMENT=production`. The normal production seed also requires replacing
+the documented development-only demo password.
+
 ## Checks
 
 ```powershell

@@ -1307,6 +1307,19 @@ One command can safely prepare a complete demo environment.
 feat: add realistic repeatable demo data
 ```
 
+## Status
+
+```text
+IMPLEMENTED AND VERIFIED — 2026-10-05
+```
+
+The seed command now prepares 30 fictional leads across every status and all configured source
+types, eight quotations across every quotation state with 21 calculated items, and 12 relative
+follow-ups evenly covering overdue, today, upcoming, and completed. Stable UUIDs make normal seed
+idempotent. `--reset` atomically replaces only the demo user's business records, preserves the user
+account and other tenants, and is refused in production. Empty-database migration/seed, repeat seed,
+modified-data restoration, tenant isolation, and production refusal pass on isolated PostgreSQL.
+
 ---
 
 # Session 12 — UX Polish, Responsive Design, and Accessibility
