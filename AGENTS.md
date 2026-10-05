@@ -1,6 +1,6 @@
 # ClientFlow Agent Handoff
 
-Last updated: 2026-10-05, after Session 12 verification and before its push.
+Last updated: 2026-10-05, after Session 12 was pushed and before Session 13 implementation.
 
 This file is the fast-start handoff for any new coding session. Read it before making changes,
 then read the current session in `session.md`. Keep this file current whenever a session changes
@@ -120,10 +120,9 @@ Currency: BDT
 | 9 | Added one-request owned dashboard metrics, pipeline counts, reminder/recent-lead read models, responsive UI, PostgreSQL aggregation tests, and browser refresh coverage | `4bfc7e7` |
 | 10 | Added owned paginated quotation PDFs and safe active-lead CSV exports, authenticated browser downloads, content tests, and mobile coverage | `3f71881` |
 | 11 | Added deterministic screenshot-ready demo data, idempotent normal seed, isolated demo-only reset, production refusal, and tenant-preservation tests | `439e9e6` |
-| 12 | Added coherent responsive polish, shared notifications, focus-managed confirmations/navigation, accessible forms/titles/404, and multi-breakpoint browser coverage | `feat: polish responsive and accessible user experience` |
+| 12 | Added coherent responsive polish, shared notifications, focus-managed confirmations/navigation, accessible forms/titles/404, and multi-breakpoint browser coverage | `5f9af7c` |
 
-Sessions 0-12 are marked implemented and verified in `session.md`. Sessions 0-11 are on
-`origin/main`; Session 12 is the next commit/push at this handoff update.
+Sessions 0-12 are marked implemented and verified in `session.md` and are on `origin/main`.
 
 ## Important implemented behavior
 
@@ -227,8 +226,8 @@ Sessions 0-12 are marked implemented and verified in `session.md`. Sessions 0-11
 
 ## Next session: Session 13
 
-Session 12 has cleared its full verification gate. Commit and push it, then start Session 13 from a
-clean tree and confirmed remote boundary.
+Session 12 is pushed as `5f9af7c`. Start Session 13 from that confirmed remote boundary and a clean
+tree (apart from the handoff update commit that immediately follows it).
 
 Session 13 objective: prove release-critical behavior and remove security/reliability blockers.
 Read the full Session 13 section in `session.md`. Complete the ownership/authentication/business-
