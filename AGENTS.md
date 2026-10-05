@@ -134,7 +134,7 @@ Currency: BDT
 | 11 | Added deterministic screenshot-ready demo data, idempotent normal seed, isolated demo-only reset, production refusal, and tenant-preservation tests | `439e9e6` |
 | 12 | Added coherent responsive polish, shared notifications, focus-managed confirmations/navigation, accessible forms/titles/404, and multi-breakpoint browser coverage | `5f9af7c` |
 | 13 | PostgreSQL-only rollback-isolated suite (128 tests), audit-driven security/reliability fixes, commit-before-response sessions, production config guards, row locks, archive consistency, and a double-click-safe MVP browser test | `e992556` |
-| 14 | Deployed the Render/Supabase production system, added PostgreSQL CI and provider-independent configuration, and passed the complete public MVP/responsive smoke suite | `c92a65c` |
+| 14 | Deployed the Render/Supabase production system, added PostgreSQL CI and provider-independent configuration, and passed the complete public MVP/responsive smoke suite | `30c438d` |
 
 Sessions 0-14 are marked implemented and verified in `session.md` and are on `origin/main`.
 
@@ -264,7 +264,8 @@ Sessions 0-14 are marked implemented and verified in `session.md` and are on `or
 
 ## Next session: Session 15
 
-Session 14 is implemented, publicly deployed, verified, and pushed through `c92a65c`.
+Session 14 is implemented, publicly deployed, verified, and pushed through `30c438d`. The deployed
+application source boundary is `c92a65c`.
 
 Live production system:
 
@@ -297,6 +298,8 @@ Session 14 implementation and operating facts:
   `VITE_API_URL`, documentation, and smoke targets aligned with those real URLs.
 - GitHub Actions run `37359089709` passed the PostgreSQL backend and frontend production-build jobs
   for `c92a65c`.
+- GitHub Actions run `37360841806` passed both jobs for the Session 14 completion handoff
+  `30c438d`.
 - Public verification on 2026-10-06 returned 200 for frontend, health, docs, OpenAPI, and every route
   pattern in `frontend/src/app/router.tsx`. CORS returned only the deployed frontend origin without
   credentials, and the public demo login returned 200.
@@ -334,8 +337,8 @@ its detailed requirements and completion gates.
     double-clicks submits to prove one record per action.
   - Production: public health/docs/OpenAPI and every SPA route pattern return 200; exact CORS and
     public demo login are verified; the 3-test production MVP/responsive suite passes in 43.9s.
-  - GitHub Actions: run `37359089709` passed the PostgreSQL backend and frontend production-build
-    jobs for deployed commit `c92a65c`.
+  - GitHub Actions: run `37359089709` passed both jobs for deployed commit `c92a65c`; run
+    `37360841806` passed both jobs for completion commit `30c438d`.
 - Expected non-blocking warnings: Starlette TestClient warns about future `httpx2`; Vite warns that
   the main minified bundle exceeds 500 kB. Address bundle splitting during polish/hardening if it
   remains useful; neither warning currently breaks a gate.
