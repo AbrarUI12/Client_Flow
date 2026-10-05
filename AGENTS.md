@@ -132,7 +132,7 @@ Currency: BDT
 | 10 | Added owned paginated quotation PDFs and safe active-lead CSV exports, authenticated browser downloads, content tests, and mobile coverage | `3f71881` |
 | 11 | Added deterministic screenshot-ready demo data, idempotent normal seed, isolated demo-only reset, production refusal, and tenant-preservation tests | `439e9e6` |
 | 12 | Added coherent responsive polish, shared notifications, focus-managed confirmations/navigation, accessible forms/titles/404, and multi-breakpoint browser coverage | `5f9af7c` |
-| 13 | PostgreSQL-only rollback-isolated suite (128 tests), audit-driven security/reliability fixes, commit-before-response sessions, production config guards, row locks, archive consistency, and a double-click-safe MVP browser test | (this commit) |
+| 13 | PostgreSQL-only rollback-isolated suite (128 tests), audit-driven security/reliability fixes, commit-before-response sessions, production config guards, row locks, archive consistency, and a double-click-safe MVP browser test | `e992556` |
 
 Sessions 0-13 are marked implemented and verified in `session.md` and are on `origin/main`.
 
@@ -262,8 +262,8 @@ Sessions 0-13 are marked implemented and verified in `session.md` and are on `or
 
 ## Next session: Session 14
 
-Session 13 is implemented and verified; its commit is recorded in the table above after the push.
-Start Session 14 only from a clean tree that matches `origin/main`.
+Session 13 is pushed as `e992556`. Start Session 14 from that confirmed remote boundary and a clean
+tree (apart from the handoff update commit that immediately follows it).
 
 Session 14 objective: deploy the frontend, API, and PostgreSQL as a provider-independent production
 system, and run the full MVP smoke test publicly. Read the full Session 14 section in `session.md`.
