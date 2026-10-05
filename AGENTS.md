@@ -264,8 +264,9 @@ Sessions 0-13 are marked implemented and verified in `session.md` and are on `or
 ## Current session: Session 14
 
 Session 13 and its handoff are pushed as `e992556` and `6a8d961`. Session 14 repository preparation
-is pushed as `39bcc0b`; the Supabase provider switch is pushed as `13ad531`. Session 14 must not be
-marked complete until the public deployment and smoke test pass.
+is pushed as `39bcc0b`; the Supabase provider switch is pushed as `13ad531`; and the Render
+free-tier Blueprint fix is pushed as `ee81dbf`. Session 14 must not be marked complete until the
+public deployment and smoke test pass.
 
 Implemented and pushed for Session 14:
 
@@ -294,6 +295,7 @@ Implemented and pushed for Session 14:
   `plan: free`.
 - GitHub Actions run `37351674829` passed the PostgreSQL backend and frontend production-build jobs
   after the Supabase deployment documentation was pushed.
+- GitHub Actions run `37357377238` passed both jobs after the Render free-tier Blueprint fix.
 
 Next actions, in order:
 
