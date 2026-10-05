@@ -293,6 +293,12 @@ Implemented and pushed for Session 14:
 - The real Render Blueprint parser rejected `maxShutdownDelaySeconds` because that option is not
   supported on free web services. It has been removed; do not restore it while the API uses
   `plan: free`.
+- Render assigned the live resources globally unique `-kocw` suffixes. Production CORS,
+  `VITE_API_URL`, documentation, and smoke-test commands use those actual service URLs; the
+  Blueprint's tracked base names remain unchanged.
+- The first API deploy built successfully but stopped before connecting because Render's
+  `DATABASE_URL` value was not a parseable SQLAlchemy URL. Correct the secret as one unquoted line
+  with the password substituted and URL-encoded; never store or paste that value in the repository.
 - GitHub Actions run `37351674829` passed the PostgreSQL backend and frontend production-build jobs
   after the Supabase deployment documentation was pushed.
 - GitHub Actions run `37357377238` passed both jobs after the Render free-tier Blueprint fix.
@@ -301,9 +307,9 @@ Next actions, in order:
 
 1. The `clientflow` Supabase project now exists in Tokyo. Its IPv4 **Session pooler** port 5432 URL
    is confirmed, but the password-bearing value must remain only in Render's secret prompt.
-2. Retry the Render Blueprint from `AbrarUI12/Client_Flow` after the free-tier compatibility fix,
-   then enter `DATABASE_URL`, `DEMO_USER_PASSWORD`, and the identical `VITE_DEMO_PASSWORD` when
-   prompted.
+2. Correct `DATABASE_URL` on `clientflow-api-abrarui12-kocw`, then manually sync the Blueprint so
+   the API retries and the static site rebuilds with the real suffixed API URL. Keep
+   `DEMO_USER_PASSWORD` and `VITE_DEMO_PASSWORD` identical.
 3. Verify Render deploy logs, migration head, HTTPS health/docs/frontend, exact CORS, and
    direct refresh on every nested route.
 4. Run the full production MVP smoke flow from `session.md`, record live URLs/evidence here and in

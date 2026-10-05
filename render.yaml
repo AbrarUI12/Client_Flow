@@ -17,7 +17,7 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: CORS_ORIGINS
-        value: https://clientflow-web-abrarui12.onrender.com
+        value: https://clientflow-web-abrarui12-kocw.onrender.com
       - key: EXPOSE_API_DOCS
         value: "true"
       - key: DEMO_USER_EMAIL
@@ -38,7 +38,7 @@ services:
     autoDeployTrigger: checksPass
     envVars:
       - key: VITE_API_URL
-        value: https://clientflow-api-abrarui12.onrender.com/api/v1
+        value: https://clientflow-api-abrarui12-kocw.onrender.com/api/v1
       - key: VITE_DEMO_EMAIL
         value: demo@clientflow.app
       - key: VITE_DEMO_PASSWORD

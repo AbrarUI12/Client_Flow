@@ -1657,9 +1657,15 @@ generic schema: Render rejects `maxShutdownDelaySeconds` on free web services. T
 has been removed. The Supabase project exists in Tokyo and its port 5432 Session Pooler URL is ready
 for Render; the password-bearing URL is intentionally not stored in the repository.
 
+Render assigned the created API and static site globally unique `-kocw` suffixes. The checked-in
+CORS origin, frontend API URL, deployment guide, and public smoke targets now use those actual URLs.
+The static site was created successfully. The first API build also succeeded, but startup stopped
+before a network connection because Render's `DATABASE_URL` was not a parseable SQLAlchemy URL. The
+secret must be corrected in Render as one unquoted Session Pooler URI with the password substituted
+and URL-encoded.
+
 The user's Render and Supabase account connections are available. Still required before this session
-can be marked complete: retry the Blueprint, enter the Supabase Session Pooler URL and the two
-matching demo-password values in Render, deploy from `main`, verify GitHub CI and both public
+can be marked complete: correct the Render database secret, sync the Blueprint, verify GitHub CI and both public
 HTTPS services, run the complete MVP flow against production, test nested-route refreshes, record
 the live URLs, commit the final handoff, and push it. Do not start Session 15 before those gates pass.
 

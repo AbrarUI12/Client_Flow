@@ -42,8 +42,8 @@ idempotent demo seed. A failed migration or seed prevents the new process from r
 ## 2. Create the Render Blueprint
 
 1. In Render, create a new Blueprint from `AbrarUI12/Client_Flow` on `main`.
-2. Render reads the root `render.yaml` and creates `clientflow-api-abrarui12` and
-   `clientflow-web-abrarui12`.
+2. Render reads the root `render.yaml`. For this deployment, Render assigned the globally unique
+   service names `clientflow-api-abrarui12-kocw` and `clientflow-web-abrarui12-kocw`.
 3. When prompted, set `DATABASE_URL` to the Supabase Session Pooler connection string.
 4. Choose one public demo password of at least 16 characters and enter the exact same value for
    both `DEMO_USER_PASSWORD` and `VITE_DEMO_PASSWORD`.
@@ -63,10 +63,10 @@ hides both `/docs` and `/openapi.json` in production.
 Expected URLs:
 
 ```text
-Frontend: https://clientflow-web-abrarui12.onrender.com
-API:      https://clientflow-api-abrarui12.onrender.com
-Health:   https://clientflow-api-abrarui12.onrender.com/api/v1/health
-Docs:     https://clientflow-api-abrarui12.onrender.com/docs
+Frontend: https://clientflow-web-abrarui12-kocw.onrender.com
+API:      https://clientflow-api-abrarui12-kocw.onrender.com
+Health:   https://clientflow-api-abrarui12-kocw.onrender.com/api/v1/health
+Docs:     https://clientflow-api-abrarui12-kocw.onrender.com/docs
 ```
 
 Verify that the health response is 200, the current Alembic revision is the migration head in the
@@ -79,8 +79,8 @@ complete MVP flow plus the nested-route refresh, 404, responsive-layout, and acc
 serially. The longer timeout allows for a free API cold start:
 
 ```powershell
-$env:PLAYWRIGHT_BASE_URL='https://clientflow-web-abrarui12.onrender.com'
-$env:VITE_API_URL='https://clientflow-api-abrarui12.onrender.com/api/v1'
+$env:PLAYWRIGHT_BASE_URL='https://clientflow-web-abrarui12-kocw.onrender.com'
+$env:VITE_API_URL='https://clientflow-api-abrarui12-kocw.onrender.com/api/v1'
 npm run test:smoke:production
 Remove-Item Env:PLAYWRIGHT_BASE_URL, Env:VITE_API_URL
 ```
@@ -93,14 +93,14 @@ Required API variables:
 ENVIRONMENT=production
 DATABASE_URL=<secret managed PostgreSQL URL>
 SECRET_KEY=<generated private value of at least 32 bytes>
-CORS_ORIGINS=https://clientflow-web-abrarui12.onrender.com
+CORS_ORIGINS=https://clientflow-web-abrarui12-kocw.onrender.com
 DEMO_USER_PASSWORD=<public demo-only password, not the development default>
 ```
 
 Required frontend build variables:
 
 ```text
-VITE_API_URL=https://clientflow-api-abrarui12.onrender.com/api/v1
+VITE_API_URL=https://clientflow-api-abrarui12-kocw.onrender.com/api/v1
 VITE_DEMO_EMAIL=demo@clientflow.app
 VITE_DEMO_PASSWORD=<same public demo-only password>
 ```
