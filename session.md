@@ -1623,6 +1623,35 @@ Login
 ci: prepare ClientFlow for production deployment
 ```
 
+## Status
+
+```text
+IN PROGRESS — 2026-10-05
+```
+
+Repository-side production preparation is implemented and locally verified. The selected portfolio
+deployment is a Render Singapore Python API, a Render static frontend, and a Neon Singapore
+PostgreSQL database. The checked-in Blueprint configures HTTPS origins, SPA fallback, generated JWT
+secret, database-backed health checks, provider-supplied secrets, and deploys only after CI passes.
+The API start script applies Alembic migrations and the idempotent demo seed before Uvicorn because
+Render's free service does not provide a pre-deploy command.
+
+GitHub Actions now runs Ruff plus the complete backend suite on PostgreSQL 17 and runs frontend lint,
+type checking, and the production build. Managed `postgres://` connection strings select psycopg 3
+automatically; production CORS requires HTTPS origins; docs/schema exposure is one explicit setting;
+and the public demo credential helper reads build-time configuration instead of embedding the local
+password. Metadata and the favicon are production-ready.
+
+Local evidence: the official Render schema accepts `render.yaml`; 134 backend tests pass; frontend
+lint/build and all 10 Playwright tests pass; and a clean disposable production-mode database reached
+the migration head, seeded once, no-op seeded again, authenticated the production demo account, and
+returned healthy API/docs/CORS responses. The disposable database was removed afterward.
+
+Still required before this session can be marked complete: create/connect the user's Neon and Render
+accounts, enter the three prompted values, deploy from `main`, verify GitHub CI and both public HTTPS
+services, run the complete MVP flow against production, test nested-route refreshes, record the live
+URLs, commit the final handoff, and push it. Do not start Session 15 before those gates pass.
+
 ---
 
 # Session 15 — Portfolio Packaging and Project Handoff

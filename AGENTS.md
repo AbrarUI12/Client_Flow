@@ -1,6 +1,7 @@
 # ClientFlow Agent Handoff
 
-Last updated: 2026-10-05, after Session 13 was implemented, verified, and pushed.
+Last updated: 2026-10-05, while Session 14 production preparation is locally verified and public
+deployment is waiting for the user's hosting-account connection.
 
 This file is the fast-start handoff for any new coding session. Read it before making changes,
 then read the current session in `session.md`. Keep this file current whenever a session changes
@@ -260,36 +261,45 @@ Sessions 0-13 are marked implemented and verified in `session.md` and are on `or
   feedback, mobile 200% text, and no page overflow at 390/768/1280/1600 widths. Manual screenshot
   QA covered the populated desktop dashboard and mobile lead list.
 
-## Next session: Session 14
+## Current session: Session 14
 
-Session 13 is pushed as `e992556`. Start Session 14 from that confirmed remote boundary and a clean
-tree (apart from the handoff update commit that immediately follows it).
+Session 13 and its handoff are pushed as `e992556` and `6a8d961`. Session 14 repository preparation
+is complete locally but must not be marked complete until the public deployment and smoke test pass.
 
-Session 14 objective: deploy the frontend, API, and PostgreSQL as a provider-independent production
-system, and run the full MVP smoke test publicly. Read the full Session 14 section in `session.md`.
-Deployment needs the user's own hosting accounts, so confirm providers and access with the user
-first. Carry these Session 13 findings into it:
+Implemented in the current working tree:
 
-- Provider research (2026-10-05):
-  - Render free web services sleep after 15 minutes idle, and the free tier has no pre-deploy
-    command, so run `alembic upgrade head` in the start command.
-  - Render free Postgres expires after 30 days. Neon's free plan is permanent with 0.5-1 GB and
-    scale-to-zero.
-  - Re-verify current pricing before choosing.
-- Production `Settings` now fails fast without a private `SECRET_KEY`, a real `DATABASE_URL`, and
-  explicit `CORS_ORIGINS`.
-- The login page's "Fill demo email and password" helper hard-codes the development password, while
-  the production seed refuses that password. Decide how the public demo credentials are configured
-  and shown.
-- `/docs` is hidden in production but `/openapi.json` is still served. Decide intentionally.
-- `/health` does not touch the database. Consider this when configuring the platform health check.
-- GitHub Actions must provide a PostgreSQL service and a `TEST_DATABASE_URL` ending in `_test`.
+- Selected Render Singapore for the free Python API, Render's global static CDN for the frontend,
+  and Neon Singapore for PostgreSQL. Current official research confirms Render free APIs sleep after
+  15 idle minutes and Render free databases expire after 30 days; Neon now provides 1 GB per free
+  project without that fixed expiry.
+- Added `render.yaml`, a portable production start script, exact API/frontend environment contracts,
+  managed PostgreSQL URL normalization, HTTPS-only production CORS, and explicit docs/schema
+  exposure via `EXPOSE_API_DOCS`.
+- `/api/v1/health` now checks PostgreSQL and is the platform readiness path.
+- The public demo helper uses `VITE_DEMO_EMAIL` and `VITE_DEMO_PASSWORD`; the local development
+  fallback remains available only in Vite development mode. The frontend and backend deployment
+  values must match. The public demo password must never be reused as a private credential.
+- Added SPA rewrites, response-security headers, production metadata, a ClientFlow favicon, a
+  provider guide in `deployment/README.md`, and PostgreSQL-backed GitHub Actions CI.
+- `render.yaml` validates against Render's official schema. A disposable production rehearsal
+  migrated a blank database to head, seeded/no-op seeded, authenticated, and returned 200 for
+  database health, docs, and schema with exact CORS; the database was then removed.
+
+Next actions, in order:
+
+1. Commit and push the deployment-preparation tree so GitHub Actions and Render can consume it.
+2. Have the user sign in to Neon and create `clientflow` in AWS Singapore, then provide its direct
+   connection URL only through Render's secret prompt (never in chat or Git).
+3. Have the user sign in to Render, connect `AbrarUI12/Client_Flow`, create the Blueprint, and enter
+   `DATABASE_URL`, `DEMO_USER_PASSWORD`, and the identical `VITE_DEMO_PASSWORD` when prompted.
+4. Verify GitHub CI, Render deploy logs, migration head, HTTPS health/docs/frontend, exact CORS, and
+   direct refresh on every nested route.
+5. Run the full production MVP smoke flow from `session.md`, record live URLs/evidence here and in
+   `session.md`, mark Session 14 complete, commit, and push. Only then begin Session 15.
 
 ## Remaining roadmap after Session 13
 
-- Session 14 — Deployment: choose suitable current providers, managed PostgreSQL, HTTPS API/static
-  frontend, exact production env/CORS, migrations and seed, SPA fallback, metadata/favicon, GitHub
-  Actions, and full public production smoke test. Provider research must use current information.
+- Session 14 — finish the account-bound deployment and public production verification listed above.
 - Session 15 — Portfolio handoff: complete README, public links, architecture and ER diagrams,
   authorization/money/state-machine explanations, polished screenshots, 60-90 second demo plan,
   case study, clean-clone verification, and optional `v1.0.0` tag.
@@ -299,13 +309,13 @@ its detailed requirements and completion gates.
 
 ## Current verification baseline and known non-blockers
 
-- Session 13 baseline:
-  - Backend: Ruff clean and `128 passed` on PostgreSQL, deterministic across repeated runs, with
+- Session 14 repository-preparation baseline:
+  - Backend: Ruff clean and `134 passed` on PostgreSQL, deterministic across repeated runs, with
     the test database empty afterward. The suite covers authentication/route inventory, a tenant
     isolation matrix, archive rules, input safety, rollback, conflicts, row locks, the migration
     round trip with drift detection, and seed safety. Reverting each key fix makes its guard test
     fail.
-  - Frontend: lint, `tsc -b`, the ad-hoc e2e type check, and the production build are clean.
+  - Frontend: lint, `tsc -b`, and the production build are clean.
   - Browser: `10` Playwright tests pass. The new `e2e/mvp.spec.ts` runs the full MVP flow once and
     double-clicks submits to prove one record per action.
 - Expected non-blocking warnings: Starlette TestClient warns about future `httpx2`; Vite warns that

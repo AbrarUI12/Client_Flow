@@ -7,12 +7,14 @@ from app.core.config import get_settings
 from app.core.errors import request_validation_error_handler
 
 settings = get_settings()
+api_docs_enabled = settings.environment != "production" or settings.expose_api_docs
 
 app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
-    docs_url="/docs" if settings.environment != "production" else None,
+    docs_url="/docs" if api_docs_enabled else None,
     redoc_url=None,
+    openapi_url="/openapi.json" if api_docs_enabled else None,
 )
 
 # The SPA authenticates with a bearer header, not cookies, so credentials stay disabled and only

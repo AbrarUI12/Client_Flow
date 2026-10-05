@@ -1,0 +1,63 @@
+services:
+  - type: web
+    name: clientflow-api-abrarui12
+    runtime: python
+    plan: free
+    region: singapore
+    rootDir: backend
+    buildCommand: python -m pip install --upgrade pip && python -m pip install .
+    startCommand: bash scripts/start-production.sh
+    healthCheckPath: /api/v1/health
+    autoDeployTrigger: checksPass
+    maxShutdownDelaySeconds: 30
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: CORS_ORIGINS
+        value: https://clientflow-web-abrarui12.onrender.com
+      - key: EXPOSE_API_DOCS
+        value: "true"
+      - key: DEMO_USER_EMAIL
+        value: demo@clientflow.app
+      - key: DEMO_USER_PASSWORD
+        sync: false
+      - key: DEMO_TIMEZONE
+        value: Asia/Dhaka
+      - key: DEMO_CURRENCY_CODE
+        value: BDT
+
+  - type: web
+    name: clientflow-web-abrarui12
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: VITE_API_URL
+        value: https://clientflow-api-abrarui12.onrender.com/api/v1
+      - key: VITE_DEMO_EMAIL
+        value: demo@clientflow.app
+      - key: VITE_DEMO_PASSWORD
+        sync: false
+    headers:
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+      - path: /*
+        name: Permissions-Policy
+        value: camera=(), microphone=(), geolocation=()
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

@@ -273,6 +273,7 @@ def test_passwords_are_stored_as_argon2id_and_never_returned(
         ({"cors_origins": "*"}, "CORS_ORIGINS"),
         ({"cors_origins": "https://clientflow.example.com,*"}, "CORS_ORIGINS"),
         ({"cors_origins": " , "}, "CORS_ORIGINS"),
+        ({"cors_origins": "http://clientflow.example.com"}, "CORS_ORIGINS"),
     ],
 )
 def test_production_settings_refuse_public_or_unsafe_values(
@@ -295,6 +296,31 @@ def test_development_defaults_remain_usable_outside_production() -> None:
 
     assert settings.environment == "development"
     assert settings.cors_origin_list == ["http://localhost:5173"]
+
+
+@pytest.mark.parametrize("scheme", ["postgres", "postgresql"])
+def test_managed_postgresql_urls_select_the_installed_psycopg_driver(scheme: str) -> None:
+    settings = Settings(
+        _env_file=None,
+        database_url=f"{scheme}://clientflow@db.example.com/clientflow?sslmode=require",
+    )
+
+    assert settings.database_url == (
+        "postgresql+psycopg://clientflow@db.example.com/clientflow?sslmode=require"
+    )
+
+
+@pytest.mark.parametrize(
+    "origins",
+    [
+        "https://clientflow.example.com/app",
+        "https://clientflow.example.com?preview=true",
+        "clientflow.example.com",
+    ],
+)
+def test_cors_configuration_accepts_origins_only(origins: str) -> None:
+    with pytest.raises(ValidationError, match="CORS_ORIGINS"):
+        Settings(_env_file=None, cors_origins=origins)
 
 
 def test_cors_allows_only_the_configured_origin_and_needed_request_shape(

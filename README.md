@@ -96,6 +96,13 @@ drops and rebuilds its schema.
 `npm run test:e2e` expects the API on port 8000 and the web app on port 5173 to be running against
 a migrated, seeded development database. The browser tests create uniquely named records there.
 
+## Production deployment
+
+The repository includes a Render Blueprint for the HTTPS static frontend and FastAPI service, a
+Neon PostgreSQL setup guide, an idempotent migrate-and-seed start command, and PostgreSQL-backed
+GitHub Actions checks. No production credential is stored in Git. Follow
+[`deployment/README.md`](deployment/README.md) to provision and verify the public deployment.
+
 ## Security and reliability safeguards
 
 - Every API route except health and login requires a valid bearer token. Tokens must carry an

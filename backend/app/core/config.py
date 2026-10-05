@@ -1,5 +1,6 @@
 from functools import lru_cache
 from typing import Literal
+from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from pydantic import Field, SecretStr, field_validator, model_validator
@@ -30,6 +31,7 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = Field(default=60, gt=0)
     jwt_algorithm: Literal["HS256", "HS384", "HS512"] = "HS256"
     cors_origins: str = "http://localhost:5173"
+    expose_api_docs: bool = False
 
     demo_user_email: str = "demo@clientflow.app"
     demo_user_password: SecretStr = SecretStr("development-only-change-me")
@@ -47,6 +49,42 @@ class Settings(BaseSettings):
         if not value.startswith("/"):
             raise ValueError("API_V1_PREFIX must start with '/'")
         return value
+
+    @field_validator("database_url")
+    @classmethod
+    def normalize_database_url(cls, value: str) -> str:
+        normalized = value.strip()
+        # Managed PostgreSQL providers commonly publish a generic URL. Pin the installed psycopg
+        # v3 driver so the same connection string works locally, in migrations, and in production.
+        if normalized.startswith("postgres://"):
+            return normalized.replace("postgres://", "postgresql+psycopg://", 1)
+        if normalized.startswith("postgresql://"):
+            return normalized.replace("postgresql://", "postgresql+psycopg://", 1)
+        return normalized
+
+    @field_validator("cors_origins")
+    @classmethod
+    def validate_cors_origins(cls, value: str) -> str:
+        origins: list[str] = []
+        for raw_origin in value.split(","):
+            origin = raw_origin.strip().rstrip("/")
+            if not origin:
+                continue
+            if origin == "*":
+                origins.append(origin)
+                continue
+            parsed = urlsplit(origin)
+            if (
+                parsed.scheme not in {"http", "https"}
+                or not parsed.hostname
+                or parsed.path
+                or parsed.query
+                or parsed.fragment
+            ):
+                raise ValueError("CORS_ORIGINS entries must be HTTP(S) origins without paths")
+            if origin not in origins:
+                origins.append(origin)
+        return ",".join(origins)
 
     @field_validator("demo_user_email")
     @classmethod
@@ -92,6 +130,8 @@ class Settings(BaseSettings):
         origins = self.cors_origin_list
         if not origins or "*" in origins:
             raise ValueError("CORS_ORIGINS must list explicit origins in production")
+        if any(urlsplit(origin).scheme != "https" for origin in origins):
+            raise ValueError("CORS_ORIGINS must use HTTPS in production")
         return self
 
     @property

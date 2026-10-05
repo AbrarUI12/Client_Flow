@@ -20,6 +20,11 @@ type LoginLocationState = {
   from?: string
 }
 
+const demoEmail = import.meta.env.VITE_DEMO_EMAIL?.trim() || 'demo@clientflow.app'
+const demoPassword =
+  import.meta.env.VITE_DEMO_PASSWORD?.trim() ||
+  (import.meta.env.DEV ? 'development-only-change-me' : '')
+
 export function LoginPage() {
   useDocumentTitle('Sign in')
   const { login, status } = useAuth()
@@ -34,7 +39,7 @@ export function LoginPage() {
     setValue,
   } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: 'demo@clientflow.app', password: '' },
+    defaultValues: { email: demoEmail, password: '' },
   })
 
   const destination = (location.state as LoginLocationState | null)?.from || '/dashboard'
@@ -174,16 +179,20 @@ export function LoginPage() {
               <LockKeyhole className="mt-0.5 size-4 shrink-0 text-blue-600" aria-hidden="true" />
               <div>
                 <p className="font-medium text-slate-800">Demo credentials</p>
-                <button
-                  type="button"
-                  className="mt-1 text-left text-blue-700 hover:underline"
-                  onClick={() => {
-                    setValue('email', 'demo@clientflow.app')
-                    setValue('password', 'development-only-change-me')
-                  }}
-                >
-                  Fill demo email and password
-                </button>
+                {demoPassword ? (
+                  <button
+                    type="button"
+                    className="mt-1 text-left text-blue-700 hover:underline"
+                    onClick={() => {
+                      setValue('email', demoEmail)
+                      setValue('password', demoPassword)
+                    }}
+                  >
+                    Fill demo email and password
+                  </button>
+                ) : (
+                  <p className="mt-1">Email: {demoEmail}</p>
+                )}
               </div>
             </div>
           </div>
