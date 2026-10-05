@@ -1,7 +1,8 @@
 import os
-from datetime import date, timedelta
+from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 from uuid import uuid4
+from zoneinfo import ZoneInfo
 
 import pytest
 from sqlalchemy import create_engine, delete, select
@@ -16,7 +17,14 @@ from app.models.quotation import (
     quotation_number_sequence,
 )
 from app.models.user import User
+from app.schemas.followup import FollowUpCreate
 from app.schemas.quotation import QuotationCreate, QuotationItemInput, QuotationUpdate
+from app.services.followup_service import (
+    FollowUpGroup,
+    complete_followup,
+    create_followup,
+    list_owned_followups,
+)
 from app.services.quotation_service import (
     create_quotation,
     transition_quotation_status,
@@ -153,6 +161,93 @@ def test_postgresql_quotation_engine_and_transitions() -> None:
             accepted = transition_quotation_status(session, sent, QuotationStatus.ACCEPTED)
             assert accepted.status == QuotationStatus.ACCEPTED
             assert accepted.lead.status == LeadStatus.WON
+        finally:
+            session.rollback()
+
+    engine.dispose()
+
+
+@pytest.mark.skipif(
+    TEST_DATABASE_URL is None,
+    reason="TEST_DATABASE_URL is required for PostgreSQL integration tests",
+)
+def test_postgresql_followup_timezone_groups_and_idempotent_completion() -> None:
+    assert TEST_DATABASE_URL is not None
+    engine = create_engine(TEST_DATABASE_URL)
+    dhaka = ZoneInfo("Asia/Dhaka")
+    local_now = datetime(2026, 10, 5, 12, 0, tzinfo=dhaka)
+
+    with Session(engine, expire_on_commit=False) as session:
+        try:
+            owner = session.scalar(select(User).where(User.email == "demo@clientflow.app"))
+            assert owner is not None
+            lead = Lead(
+                owner_id=owner.id,
+                contact_name=f"PostgreSQL follow-up test {uuid4()}",
+                estimated_value=Decimal("100.00"),
+            )
+            session.add(lead)
+            session.flush()
+
+            overdue = create_followup(
+                session,
+                lead,
+                FollowUpCreate(
+                    note="Overdue PostgreSQL reminder",
+                    due_at=datetime(2026, 10, 4, 10, 0, tzinfo=dhaka),
+                ),
+            )
+            today = create_followup(
+                session,
+                lead,
+                FollowUpCreate(
+                    note="Today PostgreSQL reminder",
+                    due_at=datetime(2026, 10, 5, 18, 0, tzinfo=dhaka),
+                ),
+            )
+            upcoming = create_followup(
+                session,
+                lead,
+                FollowUpCreate(
+                    note="Upcoming PostgreSQL reminder",
+                    due_at=datetime(2026, 10, 6, 10, 0, tzinfo=dhaka),
+                ),
+            )
+
+            overdue_items, _ = list_owned_followups(
+                session,
+                owner.id,
+                timezone_name="Asia/Dhaka",
+                group=FollowUpGroup.OVERDUE,
+                lead_id=lead.id,
+                now=local_now.astimezone(UTC),
+            )
+            today_items, _ = list_owned_followups(
+                session,
+                owner.id,
+                timezone_name="Asia/Dhaka",
+                group=FollowUpGroup.TODAY,
+                lead_id=lead.id,
+                now=local_now.astimezone(UTC),
+            )
+            upcoming_items, _ = list_owned_followups(
+                session,
+                owner.id,
+                timezone_name="Asia/Dhaka",
+                group=FollowUpGroup.UPCOMING,
+                lead_id=lead.id,
+                now=local_now.astimezone(UTC),
+            )
+
+            assert [item.id for item in overdue_items] == [overdue.id]
+            assert [item.id for item in today_items] == [today.id]
+            assert [item.id for item in upcoming_items] == [upcoming.id]
+
+            first_completion = complete_followup(session, today)
+            completed_at = first_completion.completed_at
+            repeated_completion = complete_followup(session, first_completion)
+            assert completed_at is not None
+            assert repeated_completion.completed_at == completed_at
         finally:
             session.rollback()
 

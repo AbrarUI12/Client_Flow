@@ -1,9 +1,10 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 
-import { AppShell, FeaturePlaceholder } from '../components/layout/AppShell'
+import { AppShell } from '../components/layout/AppShell'
 import { LoginPage } from '../features/auth/LoginPage'
 import { ProtectedRoute } from '../features/auth/ProtectedRoute'
 import { DashboardPlaceholderPage } from '../features/dashboard/DashboardPlaceholderPage'
+import { FollowUpsPage } from '../features/followups/FollowUpsPage'
 import { ConnectionPage } from '../features/health/ConnectionPage'
 import { LeadDetailPage } from '../features/leads/LeadDetailPage'
 import { LeadFormPage } from '../features/leads/LeadFormPage'
@@ -37,7 +38,7 @@ export const router = createBrowserRouter([
           { path: '/quotations/:id/edit', element: <QuotationBuilderPage mode="edit" /> },
           { path: '/quotations/:id', element: <QuotationDetailPage /> },
           { path: '/leads/:leadId/quotes/new', element: <QuotationBuilderPage mode="create" /> },
-          { path: '/follow-ups', element: <FeaturePlaceholder title="Follow-ups" /> },
+          { path: '/follow-ups', element: <FollowUpsPage /> },
         ],
       },
     ],

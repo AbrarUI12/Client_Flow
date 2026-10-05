@@ -2,7 +2,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   ArrowLeft,
   Building2,
-  CalendarClock,
   CircleAlert,
   FilePlus2,
   LoaderCircle,
@@ -16,6 +15,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { ApiError } from '../../lib/apiClient'
 import { useAuth } from '../auth/authStore'
+import { LeadFollowUpsSection } from '../followups/LeadFollowUpsSection'
 import { LeadQuotationsSection } from '../quotations/LeadQuotationsSection'
 import { archiveLead, getLead } from './api'
 import { formatDate, formatMoney, sourceLabels } from './formatting'
@@ -113,13 +113,7 @@ export function LeadDetailPage() {
         </div>
 
         <div className="space-y-5">
-          <ReservedSection
-            title="Follow-ups"
-            description="Scheduled conversations and reminders will appear here."
-            action="Add follow-up"
-            to={`/follow-ups/new?lead_id=${lead.id}`}
-            icon={<CalendarClock className="size-5" />}
-          />
+          <LeadFollowUpsSection lead={lead} />
 
           <div className="rounded-2xl border border-red-200 bg-white p-5 shadow-sm">
             <h3 className="font-semibold text-slate-900">Archive lead</h3>
@@ -159,21 +153,6 @@ function DetailItem({ icon, label, value, href }: { icon?: React.ReactNode; labe
         <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</dt>
         <dd className="mt-1 text-sm font-medium text-slate-800">{href ? <a href={href} className="text-blue-600 hover:underline">{value}</a> : value}</dd>
       </div>
-    </div>
-  )
-}
-
-function ReservedSection({ title, description, action, to, icon }: { title: string; description: string; action: string; to: string; icon: React.ReactNode }) {
-  return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h3 className="font-semibold text-slate-900">{title}</h3>
-          <p className="mt-1 text-sm leading-6 text-slate-600">{description}</p>
-        </div>
-        <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-blue-50 text-blue-600">{icon}</span>
-      </div>
-      <Link to={to} className="mt-5 inline-flex min-h-11 items-center text-sm font-semibold text-blue-600 hover:text-blue-700">{action} →</Link>
     </div>
   )
 }

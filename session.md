@@ -1119,6 +1119,14 @@ Lead detail
 feat: add follow-up scheduling and completion
 ```
 
+## Status
+
+```text
+IMPLEMENTED AND VERIFIED — 2026-10-05
+```
+
+Follow-ups can be created and edited from an accessible lead-detail dialog, are classified into deterministic overdue, today, upcoming, and completed groups in the user's timezone, and can be completed with immediate query refresh. Completion is idempotent and preserves its original timestamp. Validation, ownership, PostgreSQL timezone grouping, desktop behavior, and the mobile completion flow are covered by automated tests.
+
 ---
 
 # Session 9 — Dashboard Aggregation and UI

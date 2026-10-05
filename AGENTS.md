@@ -1,6 +1,6 @@
 # ClientFlow Agent Handoff
 
-Last updated: 2026-10-05, during Session 8.
+Last updated: 2026-10-05, after Session 8 verification and before its push.
 
 This file is the fast-start handoff for any new coding session. Read it before making changes,
 then read the current session in `session.md`. Keep this file current whenever a session changes
@@ -116,8 +116,10 @@ Currency: BDT
 | 5 follow-up | Aligned frontend lead sources with backend values (LinkedIn, Upwork, Fiverr, etc.) | `2a6dad7` |
 | 6 | Added server-authoritative quotation arithmetic, PostgreSQL sequence numbers, atomic item replacement, lists, ownership, and legal state transitions | `904bbba` |
 | 7 | Added exact-decimal quotation builder, list, detail, lead summaries, draft edit/send/accept UI, and lead-to-won browser flow | `bd30fc3` |
+| 8 | Added timezone-aware follow-up scheduling, owned grouping, editing, idempotent completion, lead dialog/summaries, responsive grouped UI, and browser coverage | `feat: add follow-up scheduling and completion` |
 
-Sessions 0-7 are marked implemented and verified in `session.md` and are on `origin/main`.
+Sessions 0-8 are marked implemented and verified in `session.md`. Sessions 0-7 are already on
+`origin/main`; Session 8 is the next commit/push at this handoff update.
 
 ## Important implemented behavior
 
@@ -151,40 +153,32 @@ Sessions 0-7 are marked implemented and verified in `session.md` and are on `ori
   `/leads/:leadId/quotes/new`.
 - The builder preview uses scaled `BigInt` arithmetic and the API remains authoritative after save.
 
-## Current work in progress: Session 8
+### Follow-ups
 
-Objective: complete the follow-up workflow before committing or pushing it.
+- API routes create under an owned active lead, list with optional lead/group filters, edit only
+  incomplete records, and complete with ownership through the related lead.
+- Due timestamps require an explicit offset. Incomplete reminders are grouped by the user's local
+  calendar date: before today is overdue, the full local day is today, and tomorrow onward is
+  upcoming. Completed records are separate and ordered by completion time.
+- Completion is intentionally idempotent: retries return the completed record without replacing its
+  original `completed_at`.
+- Lead detail has a native accessible create/edit dialog and reminder summaries. `/follow-ups` has
+  responsive overdue/today/upcoming/completed sections, lead links, editing, and immediate complete
+  actions. Mutations invalidate follow-up, lead, and future dashboard queries.
 
-Uncommitted backend work currently includes:
+## Next session: Session 9
 
-- `backend/app/schemas/followup.py`: timezone-required create/update schemas and responses.
-- `backend/app/services/followup_service.py`: owned queries, Asia/Dhaka-aware day boundaries,
-  overdue/today/upcoming/completed grouping, deterministic order, edit lock, and intentionally
-  idempotent completion that preserves the original `completed_at`.
-- `backend/app/api/v1/followups.py`: create, list/filter, edit, and complete routes.
-- `backend/tests/test_followups.py`: validation, grouping/order, editing, completion, idempotency,
-  and cross-user coverage.
-- `backend/tests/test_database_integration.py`: a PostgreSQL follow-up grouping/completion test was
-  just added and still needs to be run after this handoff update.
-- `backend/app/api/v1/router.py`: follow-up router registration.
+Session 8 has cleared its full verification gate. Commit and push it if this has not yet happened,
+then start Session 9 only from a clean tree and confirmed remote boundary.
 
-Already verified before the latest PostgreSQL integration-test addition: Ruff passed and the default
-suite reported `28 passed, 2 skipped`. Next actions, in order:
-
-1. Run Ruff and the full backend suite with `TEST_DATABASE_URL` so all PostgreSQL tests execute.
-2. Fix any failures.
-3. Build frontend follow-up types/API/query keys.
-4. Add an accessible create/edit dialog from lead detail and show that lead's reminders.
-5. Replace the `/follow-ups` placeholder with grouped overdue/today/upcoming/completed sections,
-   lead links, edit for incomplete items, completion actions, and useful empty/error states.
-6. Add a real-browser test: lead detail -> add follow-up -> correct date group -> complete -> recorded.
-7. Run the full backend/frontend regression gate.
-8. Mark Session 8 complete in `session.md`, update this file, commit with
-   `feat: add follow-up scheduling and completion`, and push before Session 9.
-
-Session 8 grouping policy: incomplete reminders are grouped by the user's local calendar date.
-Dates before the local day are overdue, the whole local day is today, and dates from the next local
-day onward are upcoming. Completed reminders are a separate group ordered by completion time.
+Session 9 objective: replace the dashboard placeholder with one owned operational summary read
+model and responsive UI. Before implementation, read the full Session 9 section in `session.md`.
+The backend response must include total non-archived leads, open quote count/value, timezone-aware
+overdue count, pipeline counts by lead status, ordered upcoming/overdue reminder rows, and recent
+lead rows. Define open quotes explicitly, exclude archived leads consistently, test ownership and
+money totals on PostgreSQL, and keep the dashboard to one main API request. The frontend needs four
+metric cards, numeric pipeline, reminder and recent-lead sections, working links, layout-preserving
+skeletons, and useful empty/error states at laptop and mobile widths.
 
 ## Remaining roadmap after Session 8
 
@@ -213,9 +207,9 @@ its detailed requirements and completion gates.
 
 ## Current verification baseline and known non-blockers
 
-- Session 7 baseline: backend Ruff clean; `26 passed` with PostgreSQL integration enabled; frontend
-  lint clean; production build successful; `4` Playwright tests passed.
-- After adding initial Session 8 backend tests: default suite `28 passed, 2 skipped` and Ruff clean.
+- Session 8 baseline: backend Ruff clean; `31 passed` with all PostgreSQL integration tests enabled;
+  frontend lint clean; production build successful; `5` Playwright tests passed, including the
+  lead-to-completed-follow-up flow at mobile width.
 - Expected non-blocking warnings: Starlette TestClient warns about future `httpx2`; Vite warns that
   the main minified bundle exceeds 500 kB. Address bundle splitting during polish/hardening if it
   remains useful; neither warning currently breaks a gate.

@@ -72,6 +72,13 @@ persisted money result to two decimal places using decimal `ROUND_HALF_UP`, appl
 to the subtotal, and then applies tax to the discounted subtotal. Quantities support three decimal
 places; unit prices and percentages support two.
 
+## Follow-up time policy
+
+Follow-up timestamps must include a timezone offset and are stored as absolute instants. The API
+groups incomplete reminders using the authenticated user's configured local calendar: dates before
+today are overdue, the full local day is today, and tomorrow onward is upcoming. Completed reminders
+are separate. Completion is idempotent, so a safe retry preserves the original completion time.
+
 ## Project plan
 
 The approved product definition is in [`ClientFlow_v1_Full_Project_Design.md`](ClientFlow_v1_Full_Project_Design.md), and the implementation sequence is in [`session.md`](session.md).
