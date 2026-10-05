@@ -1,6 +1,6 @@
 # ClientFlow Agent Handoff
 
-Last updated: 2026-10-05, after Session 10 verification and before its push.
+Last updated: 2026-10-05, after Session 10 was pushed and before Session 11 implementation.
 
 This file is the fast-start handoff for any new coding session. Read it before making changes,
 then read the current session in `session.md`. Keep this file current whenever a session changes
@@ -118,10 +118,9 @@ Currency: BDT
 | 7 | Added exact-decimal quotation builder, list, detail, lead summaries, draft edit/send/accept UI, and lead-to-won browser flow | `bd30fc3` |
 | 8 | Added timezone-aware follow-up scheduling, owned grouping, editing, idempotent completion, lead dialog/summaries, responsive grouped UI, and browser coverage | `6d81880` |
 | 9 | Added one-request owned dashboard metrics, pipeline counts, reminder/recent-lead read models, responsive UI, PostgreSQL aggregation tests, and browser refresh coverage | `4bfc7e7` |
-| 10 | Added owned paginated quotation PDFs and safe active-lead CSV exports, authenticated browser downloads, content tests, and mobile coverage | `feat: add quotation PDF and lead CSV exports` |
+| 10 | Added owned paginated quotation PDFs and safe active-lead CSV exports, authenticated browser downloads, content tests, and mobile coverage | `3f71881` |
 
-Sessions 0-10 are marked implemented and verified in `session.md`. Sessions 0-9 are on
-`origin/main`; Session 10 is the next commit/push at this handoff update.
+Sessions 0-10 are marked implemented and verified in `session.md` and are on `origin/main`.
 
 ## Important implemented behavior
 
@@ -195,8 +194,8 @@ Sessions 0-10 are marked implemented and verified in `session.md`. Sessions 0-9 
 
 ## Next session: Session 11
 
-Session 10 has cleared its full verification gate. Commit and push it, then start Session 11 from a
-clean tree and confirmed remote boundary.
+Session 10 is pushed as `3f71881`. Start Session 11 from that confirmed remote boundary and a clean
+tree (apart from the handoff update commit that immediately follows it).
 
 Session 11 objective: expand the seed workflow into deterministic, screenshot-ready demo data. Read
 the full Session 11 section in `session.md` before implementation. Create roughly 25-40 fictional
