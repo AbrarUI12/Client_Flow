@@ -1186,6 +1186,14 @@ Changes made to leads, quotations, and follow-ups are accurately reflected on th
 feat: add operational dashboard summary
 ```
 
+## Status
+
+```text
+IMPLEMENTED AND VERIFIED — 2026-10-05
+```
+
+The dashboard uses one owned summary request for four metrics, the complete numeric lead pipeline, recent leads, and ordered overdue/upcoming reminders. Draft and sent quotations are explicitly counted as open, archived-lead data is excluded throughout, and overdue boundaries use the user's timezone. Ownership, aggregation accuracy, PostgreSQL behavior, data refresh, laptop layout, and mobile rendering are covered by automated tests.
+
 ---
 
 # Session 10 — PDF and CSV Exports

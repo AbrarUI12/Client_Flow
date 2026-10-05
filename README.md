@@ -79,6 +79,13 @@ groups incomplete reminders using the authenticated user's configured local cale
 today are overdue, the full local day is today, and tomorrow onward is upcoming. Completed reminders
 are separate. Completion is idempotent, so a safe retry preserves the original completion time.
 
+## Dashboard aggregation policy
+
+Dashboard metrics include only the authenticated user's non-archived leads and their related data.
+“Open quotations” means Draft and Sent quotations; both the count and value exclude accepted,
+rejected, and archived-lead records. Upcoming dashboard reminders include today and future local
+dates, while overdue reminders are due before the start of the user's current local day.
+
 ## Project plan
 
 The approved product definition is in [`ClientFlow_v1_Full_Project_Design.md`](ClientFlow_v1_Full_Project_Design.md), and the implementation sequence is in [`session.md`](session.md).

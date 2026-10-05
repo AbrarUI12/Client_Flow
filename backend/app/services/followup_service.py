@@ -47,7 +47,7 @@ def create_followup(session: Session, lead: Lead, payload: FollowUpCreate) -> Fo
     return require_owned_followup(session, lead.owner_id, followup.id)
 
 
-def _local_day_bounds(timezone_name: str, now: datetime) -> tuple[datetime, datetime]:
+def local_day_bounds(timezone_name: str, now: datetime) -> tuple[datetime, datetime]:
     timezone = ZoneInfo(timezone_name)
     local_date = now.astimezone(timezone).date()
     start = datetime.combine(local_date, time.min, tzinfo=timezone).astimezone(UTC)
@@ -70,7 +70,7 @@ def list_owned_followups(
     if lead_id is not None:
         query = query.where(FollowUp.lead_id == lead_id)
 
-    start, end = _local_day_bounds(timezone_name, now or datetime.now(UTC))
+    start, end = local_day_bounds(timezone_name, now or datetime.now(UTC))
     if group == FollowUpGroup.COMPLETED:
         query = query.where(FollowUp.is_completed.is_(True)).order_by(
             FollowUp.completed_at.desc(), FollowUp.id.desc()

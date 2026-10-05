@@ -10,6 +10,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.models.enums import LeadStatus, QuotationStatus
+from app.models.followup import FollowUp
 from app.models.lead import Lead
 from app.models.quotation import (
     Quotation,
@@ -19,6 +20,7 @@ from app.models.quotation import (
 from app.models.user import User
 from app.schemas.followup import FollowUpCreate
 from app.schemas.quotation import QuotationCreate, QuotationItemInput, QuotationUpdate
+from app.services.dashboard_service import build_dashboard_summary
 from app.services.followup_service import (
     FollowUpGroup,
     complete_followup,
@@ -248,6 +250,97 @@ def test_postgresql_followup_timezone_groups_and_idempotent_completion() -> None
             repeated_completion = complete_followup(session, first_completion)
             assert completed_at is not None
             assert repeated_completion.completed_at == completed_at
+        finally:
+            session.rollback()
+
+    engine.dispose()
+
+
+@pytest.mark.skipif(
+    TEST_DATABASE_URL is None,
+    reason="TEST_DATABASE_URL is required for PostgreSQL integration tests",
+)
+def test_postgresql_dashboard_summary_ownership_and_aggregates() -> None:
+    assert TEST_DATABASE_URL is not None
+    engine = create_engine(TEST_DATABASE_URL)
+    owner_id = uuid4()
+    fixed_now = datetime(2026, 10, 5, 6, 0, tzinfo=UTC)
+
+    with Session(engine, expire_on_commit=False) as session:
+        try:
+            owner = User(
+                id=owner_id,
+                email=f"dashboard-{owner_id}@example.com",
+                full_name="Dashboard Integration Owner",
+                password_hash="not-used-by-this-test",
+                business_name="Dashboard Integration Company",
+                business_address="Integration address",
+                business_phone="+8801700000000",
+                currency_code="BDT",
+                timezone="Asia/Dhaka",
+            )
+            session.add(owner)
+            session.flush()
+            active_lead = Lead(
+                owner_id=owner.id,
+                contact_name="Active dashboard lead",
+                status=LeadStatus.QUALIFIED,
+                estimated_value=Decimal("250.00"),
+            )
+            archived_lead = Lead(
+                owner_id=owner.id,
+                contact_name="Archived dashboard lead",
+                status=LeadStatus.LOST,
+                is_archived=True,
+                estimated_value=Decimal("500.00"),
+            )
+            session.add_all([active_lead, archived_lead])
+            session.flush()
+            session.add_all(
+                [
+                    Quotation(
+                        lead=active_lead,
+                        quote_number=f"Q-DASH-{str(owner_id)[:8]}",
+                        status=QuotationStatus.SENT,
+                        issue_date=date.today(),
+                        valid_until=date.today() + timedelta(days=14),
+                        subtotal=Decimal("125.50"),
+                        total=Decimal("125.50"),
+                    ),
+                    Quotation(
+                        lead=archived_lead,
+                        quote_number=f"Q-ARCH-{str(owner_id)[:8]}",
+                        status=QuotationStatus.DRAFT,
+                        issue_date=date.today(),
+                        valid_until=date.today() + timedelta(days=14),
+                        subtotal=Decimal("999.00"),
+                        total=Decimal("999.00"),
+                    ),
+                    FollowUp(
+                        lead=active_lead,
+                        note="Owned overdue dashboard reminder",
+                        due_at=datetime(2026, 10, 4, 4, 0, tzinfo=UTC),
+                    ),
+                    FollowUp(
+                        lead=archived_lead,
+                        note="Archived overdue dashboard reminder",
+                        due_at=datetime(2026, 10, 3, 4, 0, tzinfo=UTC),
+                    ),
+                ]
+            )
+            session.flush()
+
+            summary = build_dashboard_summary(session, owner, now=fixed_now)
+
+            assert summary.total_leads == 1
+            assert summary.open_quotation_count == 1
+            assert summary.open_quotation_value == Decimal("125.50")
+            assert summary.pipeline_counts[LeadStatus.QUALIFIED] == 1
+            assert summary.pipeline_counts[LeadStatus.LOST] == 0
+            assert summary.overdue_followup_count == 1
+            assert [item.note for item in summary.overdue_followups] == [
+                "Owned overdue dashboard reminder"
+            ]
         finally:
             session.rollback()
 

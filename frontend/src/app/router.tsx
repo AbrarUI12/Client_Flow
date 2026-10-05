@@ -3,7 +3,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { AppShell } from '../components/layout/AppShell'
 import { LoginPage } from '../features/auth/LoginPage'
 import { ProtectedRoute } from '../features/auth/ProtectedRoute'
-import { DashboardPlaceholderPage } from '../features/dashboard/DashboardPlaceholderPage'
+import { DashboardPage } from '../features/dashboard/DashboardPage'
 import { FollowUpsPage } from '../features/followups/FollowUpsPage'
 import { ConnectionPage } from '../features/health/ConnectionPage'
 import { LeadDetailPage } from '../features/leads/LeadDetailPage'
@@ -29,7 +29,7 @@ export const router = createBrowserRouter([
         element: <AppShell />,
         children: [
           { index: true, element: <Navigate to="/dashboard" replace /> },
-          { path: '/dashboard', element: <DashboardPlaceholderPage /> },
+          { path: '/dashboard', element: <DashboardPage /> },
           { path: '/leads', element: <LeadsPage /> },
           { path: '/leads/new', element: <LeadFormPage mode="create" /> },
           { path: '/leads/:id/edit', element: <LeadFormPage mode="edit" /> },

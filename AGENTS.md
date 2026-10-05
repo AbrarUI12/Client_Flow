@@ -1,6 +1,6 @@
 # ClientFlow Agent Handoff
 
-Last updated: 2026-10-05, after the Session 8 push and before Session 9 implementation.
+Last updated: 2026-10-05, after Session 9 verification and before its push.
 
 This file is the fast-start handoff for any new coding session. Read it before making changes,
 then read the current session in `session.md`. Keep this file current whenever a session changes
@@ -117,8 +117,10 @@ Currency: BDT
 | 6 | Added server-authoritative quotation arithmetic, PostgreSQL sequence numbers, atomic item replacement, lists, ownership, and legal state transitions | `904bbba` |
 | 7 | Added exact-decimal quotation builder, list, detail, lead summaries, draft edit/send/accept UI, and lead-to-won browser flow | `bd30fc3` |
 | 8 | Added timezone-aware follow-up scheduling, owned grouping, editing, idempotent completion, lead dialog/summaries, responsive grouped UI, and browser coverage | `6d81880` |
+| 9 | Added one-request owned dashboard metrics, pipeline counts, reminder/recent-lead read models, responsive UI, PostgreSQL aggregation tests, and browser refresh coverage | `feat: add operational dashboard summary` |
 
-Sessions 0-8 are marked implemented and verified in `session.md` and are on `origin/main`.
+Sessions 0-9 are marked implemented and verified in `session.md`. Sessions 0-8 are on
+`origin/main`; Session 9 is the next commit/push at this handoff update.
 
 ## Important implemented behavior
 
@@ -165,25 +167,32 @@ Sessions 0-8 are marked implemented and verified in `session.md` and are on `ori
   responsive overdue/today/upcoming/completed sections, lead links, editing, and immediate complete
   actions. Mutations invalidate follow-up, lead, and future dashboard queries.
 
-## Next session: Session 9
+### Dashboard
 
-Session 8 has cleared its full verification gate and is pushed. Start Session 9 from commit
-`6d81880` and a clean tree.
+- `GET /api/v1/dashboard/summary` is the one primary dashboard request and applies current-user
+  ownership plus non-archived lead filtering to every metric and row.
+- Open quotations are explicitly Draft + Sent; count and value exclude terminal quotes and quotes
+  under archived leads. Upcoming reminder rows include today and future dates; overdue uses the
+  start of the user's current local day.
+- The UI has four linked metric cards, a complete numeric pipeline, recent leads, overdue/upcoming
+  reminders, layout-preserving skeletons, retry and empty states, and responsive laptop/mobile
+  layouts. Lead, quotation, and follow-up mutations invalidate `['dashboard']` queries.
 
-Session 9 objective: replace the dashboard placeholder with one owned operational summary read
-model and responsive UI. Before implementation, read the full Session 9 section in `session.md`.
-The backend response must include total non-archived leads, open quote count/value, timezone-aware
-overdue count, pipeline counts by lead status, ordered upcoming/overdue reminder rows, and recent
-lead rows. Define open quotes explicitly, exclude archived leads consistently, test ownership and
-money totals on PostgreSQL, and keep the dashboard to one main API request. The frontend needs four
-metric cards, numeric pipeline, reminder and recent-lead sections, working links, layout-preserving
-skeletons, and useful empty/error states at laptop and mobile widths.
+## Next session: Session 10
+
+Session 9 has cleared its full verification gate. Commit and push it if this has not yet happened,
+then start Session 10 from a clean tree and confirmed remote boundary.
+
+Session 10 objective: implement owned quotation PDF and lead CSV downloads. Before implementation,
+read the full Session 10 section in `session.md`. PDFs must use the business/customer identities,
+ordered items, authoritative totals, dates/status, optional notes, professional pagination, correct
+content type/filename, and cross-user hiding. CSV must export only the current user's non-archived
+leads by default, use stable human-readable columns and accurate decimals, correctly handle commas,
+quotes, Unicode, and newlines, and neutralize dangerous formula-leading cells. Wire both downloads
+into the existing detail/list UI and test the file contents, long-quote page breaks, and ownership.
 
 ## Remaining roadmap after Session 8
 
-- Session 9 — Operational dashboard: one owned summary API request with non-archived lead totals,
-  open quote count/value, timezone-aware overdue count, pipeline counts, follow-up rows, recent
-  leads, and a responsive dashboard with loading/empty/error states.
 - Session 10 — Exports: owned professional multi-page quotation PDF and safe lead CSV with stable
   columns, escaping, Unicode/newline handling, and spreadsheet-formula-injection protection.
 - Session 11 — Demo data/reset: deterministic 25-40 lead dataset, about eight quotations, about 12
@@ -206,9 +215,9 @@ its detailed requirements and completion gates.
 
 ## Current verification baseline and known non-blockers
 
-- Session 8 baseline: backend Ruff clean; `31 passed` with all PostgreSQL integration tests enabled;
-  frontend lint clean; production build successful; `5` Playwright tests passed, including the
-  lead-to-completed-follow-up flow at mobile width.
+- Session 9 baseline: backend Ruff clean; `34 passed` with all PostgreSQL integration tests enabled;
+  frontend lint clean; production build successful; `6` Playwright tests passed, including
+  one-request dashboard refresh behavior and mobile rendering.
 - Expected non-blocking warnings: Starlette TestClient warns about future `httpx2`; Vite warns that
   the main minified bundle exceeds 500 kB. Address bundle splitting during polish/hardening if it
   remains useful; neither warning currently breaks a gate.
