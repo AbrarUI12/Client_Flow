@@ -281,6 +281,9 @@ Implemented and pushed for Session 14:
   values must match. The public demo password must never be reused as a private credential.
 - Added SPA rewrites, response-security headers, production metadata, a ClientFlow favicon, a
   provider guide in `deployment/README.md`, and PostgreSQL-backed GitHub Actions CI.
+- Playwright accepts `PLAYWRIGHT_BASE_URL` plus `VITE_API_URL`; `npm run test:smoke:production`
+  serially runs the complete MVP flow and nested-route/responsive checks against the public services
+  with free-tier cold-start timeouts. Do not claim production verification using localhost results.
 - `render.yaml` validates against Render's official schema. A disposable production rehearsal
   migrated a blank database to head, seeded/no-op seeded, authenticated, and returned 200 for
   database health, docs, and schema with exact CORS; the database was then removed.

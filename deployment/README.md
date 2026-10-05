@@ -65,6 +65,17 @@ deploy log, and a direct browser refresh works on `/dashboard`, `/leads`, `/quot
 `/follow-ups`. Then run the complete Session 14 MVP smoke flow from `session.md` and record the
 public URLs and result in `AGENTS.md`.
 
+From `frontend`, the production smoke command targets the public services explicitly. It runs the
+complete MVP flow plus the nested-route refresh, 404, responsive-layout, and accessibility checks
+serially. The longer timeout allows for a free API cold start:
+
+```powershell
+$env:PLAYWRIGHT_BASE_URL='https://clientflow-web-abrarui12.onrender.com'
+$env:VITE_API_URL='https://clientflow-api-abrarui12.onrender.com/api/v1'
+npm run test:smoke:production
+Remove-Item Env:PLAYWRIGHT_BASE_URL, Env:VITE_API_URL
+```
+
 ## Production environment contract
 
 Required API variables:

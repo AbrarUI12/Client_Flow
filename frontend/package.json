@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "test:e2e": "playwright test",
+    "test:smoke:production": "playwright test e2e/mvp.spec.ts e2e/polish.spec.ts --workers=1",
     "preview": "vite preview"
   },
   "dependencies": {

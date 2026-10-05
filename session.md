@@ -1647,6 +1647,9 @@ lint/build and all 10 Playwright tests pass; and a clean disposable production-m
 the migration head, seeded once, no-op seeded again, authenticated the production demo account, and
 returned healthy API/docs/CORS responses. The disposable database was removed afterward. GitHub
 Actions run `37335413206` passed both the PostgreSQL backend and frontend production-build jobs.
+Playwright also accepts explicit public frontend/API origins through the documented
+`test:smoke:production` command, with cold-start-aware timeouts, so the final production evidence
+cannot accidentally come from localhost.
 
 Still required before this session can be marked complete: create/connect the user's Neon and Render
 accounts, enter the three prompted values, deploy from `main`, verify GitHub CI and both public HTTPS
