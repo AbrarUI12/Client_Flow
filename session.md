@@ -1626,11 +1626,11 @@ ci: prepare ClientFlow for production deployment
 ## Status
 
 ```text
-IN PROGRESS — 2026-10-05
+IN PROGRESS — 2026-10-06
 ```
 
 Repository-side production preparation is implemented, verified, and pushed in `39bcc0b`. The selected portfolio
-deployment is a Render Singapore Python API, a Render static frontend, and a Supabase Singapore
+deployment is a Render Singapore Python API, a Render static frontend, and a Supabase Tokyo
 PostgreSQL database. Use Supabase's IPv4-compatible Session Pooler on port 5432 because its direct
 database endpoint requires IPv6. The checked-in Blueprint configures HTTPS origins, SPA fallback, generated JWT
 secret, database-backed health checks, provider-supplied secrets, and deploys only after CI passes.
@@ -1652,9 +1652,14 @@ Playwright also accepts explicit public frontend/API origins through the documen
 `test:smoke:production` command, with cold-start-aware timeouts, so the final production evidence
 cannot accidentally come from localhost.
 
+The first real Blueprint creation attempt exposed a plan-specific constraint not caught by the
+generic schema: Render rejects `maxShutdownDelaySeconds` on free web services. The unsupported field
+has been removed. The Supabase project exists in Tokyo and its port 5432 Session Pooler URL is ready
+for Render; the password-bearing URL is intentionally not stored in the repository.
+
 The user's Render and Supabase account connections are available. Still required before this session
-can be marked complete: create the Supabase Singapore project, enter its Session Pooler URL and the
-two matching demo-password values in Render, deploy from `main`, verify GitHub CI and both public
+can be marked complete: retry the Blueprint, enter the Supabase Session Pooler URL and the two
+matching demo-password values in Render, deploy from `main`, verify GitHub CI and both public
 HTTPS services, run the complete MVP flow against production, test nested-route refreshes, record
 the live URLs, commit the final handoff, and push it. Do not start Session 15 before those gates pass.
 

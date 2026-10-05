@@ -1,7 +1,7 @@
 # ClientFlow Agent Handoff
 
-Last updated: 2026-10-05, while Session 14 production preparation is locally verified and public
-deployment is waiting for the user's hosting-account connection.
+Last updated: 2026-10-06, while Session 14 production preparation is locally verified and the
+Supabase-backed Render Blueprint is being provisioned.
 
 This file is the fast-start handoff for any new coding session. Read it before making changes,
 then read the current session in `session.md`. Keep this file current whenever a session changes
@@ -270,7 +270,7 @@ marked complete until the public deployment and smoke test pass.
 Implemented and pushed for Session 14:
 
 - Selected Render Singapore for the free Python API, Render's global static CDN for the frontend,
-  and Supabase Singapore for PostgreSQL. Current official research confirms Render free APIs sleep
+  and Supabase Tokyo for PostgreSQL. Current official research confirms Render free APIs sleep
   after 15 idle minutes and Render free databases expire after 30 days. Supabase's free database has
   no fixed 30-day expiry, though a low-activity project can pause after seven days. Render must use
   Supabase's IPv4-compatible Session Pooler on port 5432, not the IPv6 direct endpoint.
@@ -289,17 +289,19 @@ Implemented and pushed for Session 14:
 - `render.yaml` validates against Render's official schema. A disposable production rehearsal
   migrated a blank database to head, seeded/no-op seeded, authenticated, and returned 200 for
   database health, docs, and schema with exact CORS; the database was then removed.
+- The real Render Blueprint parser rejected `maxShutdownDelaySeconds` because that option is not
+  supported on free web services. It has been removed; do not restore it while the API uses
+  `plan: free`.
 - GitHub Actions run `37351674829` passed the PostgreSQL backend and frontend production-build jobs
   after the Supabase deployment documentation was pushed.
 
 Next actions, in order:
 
-1. The user has confirmed the Supabase account connection. Create `clientflow` in Singapore, copy
-   the **Session pooler** port 5432 URL, and provide it only through Render's secret prompt (never
-   in chat or Git).
-2. The user has confirmed the Render account connection. Create the Blueprint from
-   `AbrarUI12/Client_Flow`, then enter `DATABASE_URL`, `DEMO_USER_PASSWORD`, and the identical
-   `VITE_DEMO_PASSWORD` when prompted.
+1. The `clientflow` Supabase project now exists in Tokyo. Its IPv4 **Session pooler** port 5432 URL
+   is confirmed, but the password-bearing value must remain only in Render's secret prompt.
+2. Retry the Render Blueprint from `AbrarUI12/Client_Flow` after the free-tier compatibility fix,
+   then enter `DATABASE_URL`, `DEMO_USER_PASSWORD`, and the identical `VITE_DEMO_PASSWORD` when
+   prompted.
 3. Verify Render deploy logs, migration head, HTTPS health/docs/frontend, exact CORS, and
    direct refresh on every nested route.
 4. Run the full production MVP smoke flow from `session.md`, record live URLs/evidence here and in

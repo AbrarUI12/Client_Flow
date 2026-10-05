@@ -10,12 +10,12 @@ environment variables and a PostgreSQL connection URL.
   web service. The free API sleeps after 15 idle minutes, so the first request can take about a
   minute. This is acceptable for a portfolio demo, not an always-on business workload.
 - Render's free PostgreSQL expires after 30 days. Supabase is used instead because its free database
-  has no fixed 30-day expiry and is available in Singapore near the Render API. A low-activity free
+  has no fixed 30-day expiry and is available in Asia Pacific. A low-activity free
   project can pause after seven days and must then be restored from the Supabase dashboard.
 
 Provider limits and pricing can change. Recheck them before recreating the deployment.
 
-Current provider references (checked 2026-10-05):
+Current provider references (checked 2026-10-06):
 
 - [Render free-service limits](https://render.com/docs/free)
 - [Render Blueprint specification](https://render.com/docs/blueprint-spec)
@@ -26,8 +26,8 @@ Current provider references (checked 2026-10-05):
 
 ## 1. Create PostgreSQL on Supabase
 
-1. Create a Supabase project named `clientflow` in Singapore (`ap-southeast-1`) and save its
-   database password in a password manager.
+1. Create a Supabase project named `clientflow`. The current production project uses Tokyo
+   (`ap-northeast-1`); save its database password in a password manager.
 2. In the project's **Connect** dialog, select **Session pooler** and copy the port `5432`
    connection string. Render needs this IPv4-compatible pooler; do not use the direct connection,
    which requires IPv6, or the port `6543` transaction pooler.
