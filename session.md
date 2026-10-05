@@ -1630,8 +1630,9 @@ IN PROGRESS — 2026-10-05
 ```
 
 Repository-side production preparation is implemented, verified, and pushed in `39bcc0b`. The selected portfolio
-deployment is a Render Singapore Python API, a Render static frontend, and a Neon Singapore
-PostgreSQL database. The checked-in Blueprint configures HTTPS origins, SPA fallback, generated JWT
+deployment is a Render Singapore Python API, a Render static frontend, and a Supabase Singapore
+PostgreSQL database. Use Supabase's IPv4-compatible Session Pooler on port 5432 because its direct
+database endpoint requires IPv6. The checked-in Blueprint configures HTTPS origins, SPA fallback, generated JWT
 secret, database-backed health checks, provider-supplied secrets, and deploys only after CI passes.
 The API start script applies Alembic migrations and the idempotent demo seed before Uvicorn because
 Render's free service does not provide a pre-deploy command.
@@ -1651,10 +1652,11 @@ Playwright also accepts explicit public frontend/API origins through the documen
 `test:smoke:production` command, with cold-start-aware timeouts, so the final production evidence
 cannot accidentally come from localhost.
 
-Still required before this session can be marked complete: create/connect the user's Neon and Render
-accounts, enter the three prompted values, deploy from `main`, verify GitHub CI and both public HTTPS
-services, run the complete MVP flow against production, test nested-route refreshes, record the live
-URLs, commit the final handoff, and push it. Do not start Session 15 before those gates pass.
+The user's Render and Supabase account connections are available. Still required before this session
+can be marked complete: create the Supabase Singapore project, enter its Session Pooler URL and the
+two matching demo-password values in Render, deploy from `main`, verify GitHub CI and both public
+HTTPS services, run the complete MVP flow against production, test nested-route refreshes, record
+the live URLs, commit the final handoff, and push it. Do not start Session 15 before those gates pass.
 
 ---
 

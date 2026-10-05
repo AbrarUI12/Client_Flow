@@ -269,9 +269,10 @@ is pushed as `39bcc0b` but must not be marked complete until the public deployme
 Implemented and pushed for Session 14:
 
 - Selected Render Singapore for the free Python API, Render's global static CDN for the frontend,
-  and Neon Singapore for PostgreSQL. Current official research confirms Render free APIs sleep after
-  15 idle minutes and Render free databases expire after 30 days; Neon now provides 1 GB per free
-  project without that fixed expiry.
+  and Supabase Singapore for PostgreSQL. Current official research confirms Render free APIs sleep
+  after 15 idle minutes and Render free databases expire after 30 days. Supabase's free database has
+  no fixed 30-day expiry, though a low-activity project can pause after seven days. Render must use
+  Supabase's IPv4-compatible Session Pooler on port 5432, not the IPv6 direct endpoint.
 - Added `render.yaml`, a portable production start script, exact API/frontend environment contracts,
   managed PostgreSQL URL normalization, HTTPS-only production CORS, and explicit docs/schema
   exposure via `EXPOSE_API_DOCS`.
@@ -290,10 +291,12 @@ Implemented and pushed for Session 14:
 
 Next actions, in order:
 
-1. Have the user sign in to Neon and create `clientflow` in AWS Singapore, then provide its direct
-   connection URL only through Render's secret prompt (never in chat or Git).
-2. Have the user sign in to Render, connect `AbrarUI12/Client_Flow`, create the Blueprint, and enter
-   `DATABASE_URL`, `DEMO_USER_PASSWORD`, and the identical `VITE_DEMO_PASSWORD` when prompted.
+1. The user has confirmed the Supabase account connection. Create `clientflow` in Singapore, copy
+   the **Session pooler** port 5432 URL, and provide it only through Render's secret prompt (never
+   in chat or Git).
+2. The user has confirmed the Render account connection. Create the Blueprint from
+   `AbrarUI12/Client_Flow`, then enter `DATABASE_URL`, `DEMO_USER_PASSWORD`, and the identical
+   `VITE_DEMO_PASSWORD` when prompted.
 3. Verify Render deploy logs, migration head, HTTPS health/docs/frontend, exact CORS, and
    direct refresh on every nested route.
 4. Run the full production MVP smoke flow from `session.md`, record live URLs/evidence here and in

@@ -1,6 +1,6 @@
 # ClientFlow production deployment
 
-The checked-in production recipe uses Render for the HTTPS API and static frontend, plus Neon for
+The checked-in production recipe uses Render for the HTTPS API and static frontend, plus Supabase for
 managed PostgreSQL. Application code remains provider-independent: the API only consumes standard
 environment variables and a PostgreSQL connection URL.
 
@@ -9,8 +9,9 @@ environment variables and a PostgreSQL connection URL.
 - Render provides a free static CDN, managed TLS, GitHub deploys, SPA rewrites, and a free Python
   web service. The free API sleeps after 15 idle minutes, so the first request can take about a
   minute. This is acceptable for a portfolio demo, not an always-on business workload.
-- Render's free PostgreSQL expires after 30 days. Neon is used instead because its free database is
-  persistent, scales to zero, and is available in Singapore near the Render API.
+- Render's free PostgreSQL expires after 30 days. Supabase is used instead because its free database
+  has no fixed 30-day expiry and is available in Singapore near the Render API. A low-activity free
+  project can pause after seven days and must then be restored from the Supabase dashboard.
 
 Provider limits and pricing can change. Recheck them before recreating the deployment.
 
@@ -18,14 +19,22 @@ Current provider references (checked 2026-10-05):
 
 - [Render free-service limits](https://render.com/docs/free)
 - [Render Blueprint specification](https://render.com/docs/blueprint-spec)
-- [Neon free-plan storage update](https://neon.com/blog/neon-free-plan-1-gb-per-project)
+- [Supabase pricing](https://supabase.com/pricing)
+- [Supabase free-project pausing](https://supabase.com/docs/guides/platform/free-project-pausing)
+- [Supabase database connections](https://supabase.com/docs/guides/database/connecting-to-postgres)
+- [Supabase regions](https://supabase.com/docs/guides/platform/regions)
 
-## 1. Create PostgreSQL on Neon
+## 1. Create PostgreSQL on Supabase
 
-1. Create a Neon project named `clientflow` in AWS Singapore (`ap-southeast-1`).
-2. Copy the direct connection string and keep `sslmode=require` in it. A normal
-   `postgresql://...` or `postgres://...` URL is accepted; ClientFlow selects psycopg automatically.
-3. Do not commit the URL. It is entered as Render's secret `DATABASE_URL`.
+1. Create a Supabase project named `clientflow` in Singapore (`ap-southeast-1`) and save its
+   database password in a password manager.
+2. In the project's **Connect** dialog, select **Session pooler** and copy the port `5432`
+   connection string. Render needs this IPv4-compatible pooler; do not use the direct connection,
+   which requires IPv6, or the port `6543` transaction pooler.
+3. Replace the password placeholder and append `?sslmode=require` if the copied URL has no query
+   string. A normal `postgresql://...` or `postgres://...` URL is accepted; ClientFlow selects
+   psycopg automatically.
+4. Do not commit or paste the URL into chat. Enter it only as Render's secret `DATABASE_URL`.
 
 The production start script runs `alembic upgrade head` before the API process, then runs the
 idempotent demo seed. A failed migration or seed prevents the new process from reporting healthy.
@@ -35,7 +44,7 @@ idempotent demo seed. A failed migration or seed prevents the new process from r
 1. In Render, create a new Blueprint from `AbrarUI12/Client_Flow` on `main`.
 2. Render reads the root `render.yaml` and creates `clientflow-api-abrarui12` and
    `clientflow-web-abrarui12`.
-3. When prompted, set `DATABASE_URL` to the Neon connection string.
+3. When prompted, set `DATABASE_URL` to the Supabase Session Pooler connection string.
 4. Choose one public demo password of at least 16 characters and enter the exact same value for
    both `DEMO_USER_PASSWORD` and `VITE_DEMO_PASSWORD`.
 

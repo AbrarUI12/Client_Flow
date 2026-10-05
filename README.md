@@ -99,7 +99,7 @@ a migrated, seeded development database. The browser tests create uniquely named
 ## Production deployment
 
 The repository includes a Render Blueprint for the HTTPS static frontend and FastAPI service, a
-Neon PostgreSQL setup guide, an idempotent migrate-and-seed start command, and PostgreSQL-backed
+Supabase PostgreSQL setup guide, an idempotent migrate-and-seed start command, and PostgreSQL-backed
 GitHub Actions checks. No production credential is stored in Git. Follow
 [`deployment/README.md`](deployment/README.md) to provision and verify the public deployment.
 
