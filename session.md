@@ -1629,7 +1629,7 @@ ci: prepare ClientFlow for production deployment
 IN PROGRESS — 2026-10-05
 ```
 
-Repository-side production preparation is implemented and locally verified. The selected portfolio
+Repository-side production preparation is implemented, verified, and pushed in `39bcc0b`. The selected portfolio
 deployment is a Render Singapore Python API, a Render static frontend, and a Neon Singapore
 PostgreSQL database. The checked-in Blueprint configures HTTPS origins, SPA fallback, generated JWT
 secret, database-backed health checks, provider-supplied secrets, and deploys only after CI passes.
@@ -1642,10 +1642,11 @@ automatically; production CORS requires HTTPS origins; docs/schema exposure is o
 and the public demo credential helper reads build-time configuration instead of embedding the local
 password. Metadata and the favicon are production-ready.
 
-Local evidence: the official Render schema accepts `render.yaml`; 134 backend tests pass; frontend
+Evidence: the official Render schema accepts `render.yaml`; 134 backend tests pass; frontend
 lint/build and all 10 Playwright tests pass; and a clean disposable production-mode database reached
 the migration head, seeded once, no-op seeded again, authenticated the production demo account, and
-returned healthy API/docs/CORS responses. The disposable database was removed afterward.
+returned healthy API/docs/CORS responses. The disposable database was removed afterward. GitHub
+Actions run `37335413206` passed both the PostgreSQL backend and frontend production-build jobs.
 
 Still required before this session can be marked complete: create/connect the user's Neon and Render
 accounts, enter the three prompted values, deploy from `main`, verify GitHub CI and both public HTTPS

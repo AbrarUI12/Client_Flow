@@ -264,9 +264,9 @@ Sessions 0-13 are marked implemented and verified in `session.md` and are on `or
 ## Current session: Session 14
 
 Session 13 and its handoff are pushed as `e992556` and `6a8d961`. Session 14 repository preparation
-is complete locally but must not be marked complete until the public deployment and smoke test pass.
+is pushed as `39bcc0b` but must not be marked complete until the public deployment and smoke test pass.
 
-Implemented in the current working tree:
+Implemented and pushed for Session 14:
 
 - Selected Render Singapore for the free Python API, Render's global static CDN for the frontend,
   and Neon Singapore for PostgreSQL. Current official research confirms Render free APIs sleep after
@@ -287,14 +287,13 @@ Implemented in the current working tree:
 
 Next actions, in order:
 
-1. Commit and push the deployment-preparation tree so GitHub Actions and Render can consume it.
-2. Have the user sign in to Neon and create `clientflow` in AWS Singapore, then provide its direct
+1. Have the user sign in to Neon and create `clientflow` in AWS Singapore, then provide its direct
    connection URL only through Render's secret prompt (never in chat or Git).
-3. Have the user sign in to Render, connect `AbrarUI12/Client_Flow`, create the Blueprint, and enter
+2. Have the user sign in to Render, connect `AbrarUI12/Client_Flow`, create the Blueprint, and enter
    `DATABASE_URL`, `DEMO_USER_PASSWORD`, and the identical `VITE_DEMO_PASSWORD` when prompted.
-4. Verify GitHub CI, Render deploy logs, migration head, HTTPS health/docs/frontend, exact CORS, and
+3. Verify Render deploy logs, migration head, HTTPS health/docs/frontend, exact CORS, and
    direct refresh on every nested route.
-5. Run the full production MVP smoke flow from `session.md`, record live URLs/evidence here and in
+4. Run the full production MVP smoke flow from `session.md`, record live URLs/evidence here and in
    `session.md`, mark Session 14 complete, commit, and push. Only then begin Session 15.
 
 ## Remaining roadmap after Session 13
@@ -318,6 +317,8 @@ its detailed requirements and completion gates.
   - Frontend: lint, `tsc -b`, and the production build are clean.
   - Browser: `10` Playwright tests pass. The new `e2e/mvp.spec.ts` runs the full MVP flow once and
     double-clicks submits to prove one record per action.
+  - GitHub Actions: run `37335413206` passed the PostgreSQL backend and frontend production-build
+    jobs for `39bcc0b`.
 - Expected non-blocking warnings: Starlette TestClient warns about future `httpx2`; Vite warns that
   the main minified bundle exceeds 500 kB. Address bundle splitting during polish/hardening if it
   remains useful; neither warning currently breaks a gate.
