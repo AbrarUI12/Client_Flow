@@ -1,6 +1,6 @@
 # ClientFlow Agent Handoff
 
-Last updated: 2026-10-05, after Session 9 verification and before its push.
+Last updated: 2026-10-05, after Session 9 was pushed and before Session 10 implementation.
 
 This file is the fast-start handoff for any new coding session. Read it before making changes,
 then read the current session in `session.md`. Keep this file current whenever a session changes
@@ -117,10 +117,9 @@ Currency: BDT
 | 6 | Added server-authoritative quotation arithmetic, PostgreSQL sequence numbers, atomic item replacement, lists, ownership, and legal state transitions | `904bbba` |
 | 7 | Added exact-decimal quotation builder, list, detail, lead summaries, draft edit/send/accept UI, and lead-to-won browser flow | `bd30fc3` |
 | 8 | Added timezone-aware follow-up scheduling, owned grouping, editing, idempotent completion, lead dialog/summaries, responsive grouped UI, and browser coverage | `6d81880` |
-| 9 | Added one-request owned dashboard metrics, pipeline counts, reminder/recent-lead read models, responsive UI, PostgreSQL aggregation tests, and browser refresh coverage | `feat: add operational dashboard summary` |
+| 9 | Added one-request owned dashboard metrics, pipeline counts, reminder/recent-lead read models, responsive UI, PostgreSQL aggregation tests, and browser refresh coverage | `4bfc7e7` |
 
-Sessions 0-9 are marked implemented and verified in `session.md`. Sessions 0-8 are on
-`origin/main`; Session 9 is the next commit/push at this handoff update.
+Sessions 0-9 are marked implemented and verified in `session.md` and are on `origin/main`.
 
 ## Important implemented behavior
 
@@ -180,8 +179,8 @@ Sessions 0-9 are marked implemented and verified in `session.md`. Sessions 0-8 a
 
 ## Next session: Session 10
 
-Session 9 has cleared its full verification gate. Commit and push it if this has not yet happened,
-then start Session 10 from a clean tree and confirmed remote boundary.
+Session 9 is pushed as `4bfc7e7`. Start Session 10 from that confirmed remote boundary and a clean
+tree (apart from the handoff update commit that immediately follows it).
 
 Session 10 objective: implement owned quotation PDF and lead CSV downloads. Before implementation,
 read the full Session 10 section in `session.md`. PDFs must use the business/customer identities,
@@ -191,7 +190,7 @@ leads by default, use stable human-readable columns and accurate decimals, corre
 quotes, Unicode, and newlines, and neutralize dangerous formula-leading cells. Wire both downloads
 into the existing detail/list UI and test the file contents, long-quote page breaks, and ownership.
 
-## Remaining roadmap after Session 8
+## Remaining roadmap after Session 9
 
 - Session 10 — Exports: owned professional multi-page quotation PDF and safe lead CSV with stable
   columns, escaping, Unicode/newline handling, and spreadsheet-formula-injection protection.
