@@ -60,6 +60,9 @@ hides both `/docs` and `/openapi.json` in production.
 
 ## 3. Verify the deployment
 
+Production verification completed successfully on 2026-10-06. The URLs below are live, and the
+documented production smoke command passed all three public browser tests.
+
 Expected URLs:
 
 ```text

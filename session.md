@@ -1626,48 +1626,50 @@ ci: prepare ClientFlow for production deployment
 ## Status
 
 ```text
-IN PROGRESS — 2026-10-06
+IMPLEMENTED AND VERIFIED — 2026-10-06
 ```
 
-Repository-side production preparation is implemented, verified, and pushed in `39bcc0b`. The selected portfolio
-deployment is a Render Singapore Python API, a Render static frontend, and a Supabase Tokyo
-PostgreSQL database. Use Supabase's IPv4-compatible Session Pooler on port 5432 because its direct
-database endpoint requires IPv6. The checked-in Blueprint configures HTTPS origins, SPA fallback, generated JWT
-secret, database-backed health checks, provider-supplied secrets, and deploys only after CI passes.
-The API start script applies Alembic migrations and the idempotent demo seed before Uvicorn because
-Render's free service does not provide a pre-deploy command.
+The provider-independent production system is live using a Render Singapore Python API, Render
+static hosting, and Supabase PostgreSQL in Tokyo through the IPv4 Session Pooler on port 5432. No
+production secret is stored in Git. The API start command applies Alembic migrations and runs the
+idempotent seed before Uvicorn, so the successful live process and database-backed health response
+prove both startup steps completed. Production reset remains disabled.
 
-GitHub Actions now runs Ruff plus the complete backend suite on PostgreSQL 17 and runs frontend lint,
-type checking, and the production build. Managed `postgres://` connection strings select psycopg 3
-automatically; production CORS requires HTTPS origins; docs/schema exposure is one explicit setting;
-and the public demo credential helper reads build-time configuration instead of embedding the local
-password. Metadata and the favicon are production-ready.
+Public endpoints:
 
-Evidence: the official Render schema accepts `render.yaml`; 134 backend tests pass; frontend
-lint/build and all 10 Playwright tests pass; and a clean disposable production-mode database reached
-the migration head, seeded once, no-op seeded again, authenticated the production demo account, and
-returned healthy API/docs/CORS responses. The disposable database was removed afterward. GitHub
-Actions run `37335413206` passed both the PostgreSQL backend and frontend production-build jobs.
-Playwright also accepts explicit public frontend/API origins through the documented
-`test:smoke:production` command, with cold-start-aware timeouts, so the final production evidence
-cannot accidentally come from localhost.
+```text
+Frontend: https://clientflow-web-abrarui12-kocw.onrender.com
+API:      https://clientflow-api-abrarui12-kocw.onrender.com
+Health:   https://clientflow-api-abrarui12-kocw.onrender.com/api/v1/health
+Docs:     https://clientflow-api-abrarui12-kocw.onrender.com/docs
+```
 
-The first real Blueprint creation attempt exposed a plan-specific constraint not caught by the
-generic schema: Render rejects `maxShutdownDelaySeconds` on free web services. The unsupported field
-has been removed. The Supabase project exists in Tokyo and its port 5432 Session Pooler URL is ready
-for Render; the password-bearing URL is intentionally not stored in the repository.
+The Render Blueprint supplies exact HTTPS origins, SPA fallback, generated JWT secret, a
+database-backed readiness check, intentional docs/schema exposure, response-security headers, and
+provider-managed secret inputs. Render's free plan rejected `maxShutdownDelaySeconds`, so that
+unsupported option was removed. Render also assigned globally unique `-kocw` service suffixes; the
+checked-in CORS origin, frontend API URL, documentation, and smoke commands use those real names.
 
-Render assigned the created API and static site globally unique `-kocw` suffixes. The checked-in
-CORS origin, frontend API URL, deployment guide, and public smoke targets now use those actual URLs.
-The static site was created successfully. The first API build also succeeded, but startup stopped
-before a network connection because Render's `DATABASE_URL` was not a parseable SQLAlchemy URL. The
-secret must be corrected in Render as one unquoted Session Pooler URI with the password substituted
-and URL-encoded.
+GitHub Actions runs Ruff plus the complete backend suite on PostgreSQL 17 and frontend lint, type
+checking, and the production build. Run `37359089709` passed both jobs for deployment commit
+`c92a65c`. The same commit deployed successfully after the Supabase Session Pooler secret was
+corrected in Render.
 
-The user's Render and Supabase account connections are available. Still required before this session
-can be marked complete: correct the Render database secret, sync the Blueprint, verify GitHub CI and both public
-HTTPS services, run the complete MVP flow against production, test nested-route refreshes, record
-the live URLs, commit the final handoff, and push it. Do not start Session 15 before those gates pass.
+Public verification on 2026-10-06 proved:
+
+- frontend, health, docs, and OpenAPI load over HTTPS with 200 responses;
+- health returns `status: ok` after touching PostgreSQL;
+- CORS returns only the exact deployed frontend origin and does not enable credentials;
+- every route pattern in `frontend/src/app/router.tsx`, including dynamic nested paths and the
+  not-found route, receives the SPA document on a direct request;
+- the configured public demo login returns 200;
+- `npm run test:smoke:production` passed all 3 tests in 43.9 seconds against the public URLs. It
+  completed the entire MVP flow, validated the three-item discount/tax total, downloaded a real PDF
+  and CSV, proved the follow-up and accepted-quote transitions, confirmed the lead became Won, and
+  checked double-click idempotency, keyboard behavior, the useful 404, 200% mobile text, and layouts
+  at 390/768/1280/1600 widths.
+
+Session 14 is complete and pushed. Session 15 may now begin.
 
 ---
 

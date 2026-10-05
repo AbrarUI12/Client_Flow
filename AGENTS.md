@@ -1,7 +1,7 @@
 # ClientFlow Agent Handoff
 
-Last updated: 2026-10-06, while Session 14 production preparation is locally verified and the
-Supabase-backed Render Blueprint is being provisioned.
+Last updated: 2026-10-06, after Session 14 was deployed publicly and its complete production smoke
+test passed.
 
 This file is the fast-start handoff for any new coding session. Read it before making changes,
 then read the current session in `session.md`. Keep this file current whenever a session changes
@@ -134,8 +134,9 @@ Currency: BDT
 | 11 | Added deterministic screenshot-ready demo data, idempotent normal seed, isolated demo-only reset, production refusal, and tenant-preservation tests | `439e9e6` |
 | 12 | Added coherent responsive polish, shared notifications, focus-managed confirmations/navigation, accessible forms/titles/404, and multi-breakpoint browser coverage | `5f9af7c` |
 | 13 | PostgreSQL-only rollback-isolated suite (128 tests), audit-driven security/reliability fixes, commit-before-response sessions, production config guards, row locks, archive consistency, and a double-click-safe MVP browser test | `e992556` |
+| 14 | Deployed the Render/Supabase production system, added PostgreSQL CI and provider-independent configuration, and passed the complete public MVP/responsive smoke suite | `c92a65c` |
 
-Sessions 0-13 are marked implemented and verified in `session.md` and are on `origin/main`.
+Sessions 0-14 are marked implemented and verified in `session.md` and are on `origin/main`.
 
 ## Important implemented behavior
 
@@ -261,63 +262,58 @@ Sessions 0-13 are marked implemented and verified in `session.md` and are on `or
   feedback, mobile 200% text, and no page overflow at 390/768/1280/1600 widths. Manual screenshot
   QA covered the populated desktop dashboard and mobile lead list.
 
-## Current session: Session 14
+## Next session: Session 15
 
-Session 13 and its handoff are pushed as `e992556` and `6a8d961`. Session 14 repository preparation
-is pushed as `39bcc0b`; the Supabase provider switch is pushed as `13ad531`; and the Render
-free-tier Blueprint fix is pushed as `ee81dbf`. Session 14 must not be marked complete until the
-public deployment and smoke test pass.
+Session 14 is implemented, publicly deployed, verified, and pushed through `c92a65c`.
 
-Implemented and pushed for Session 14:
+Live production system:
 
-- Selected Render Singapore for the free Python API, Render's global static CDN for the frontend,
-  and Supabase Tokyo for PostgreSQL. Current official research confirms Render free APIs sleep
-  after 15 idle minutes and Render free databases expire after 30 days. Supabase's free database has
-  no fixed 30-day expiry, though a low-activity project can pause after seven days. Render must use
-  Supabase's IPv4-compatible Session Pooler on port 5432, not the IPv6 direct endpoint.
-- Added `render.yaml`, a portable production start script, exact API/frontend environment contracts,
-  managed PostgreSQL URL normalization, HTTPS-only production CORS, and explicit docs/schema
-  exposure via `EXPOSE_API_DOCS`.
-- `/api/v1/health` now checks PostgreSQL and is the platform readiness path.
-- The public demo helper uses `VITE_DEMO_EMAIL` and `VITE_DEMO_PASSWORD`; the local development
-  fallback remains available only in Vite development mode. The frontend and backend deployment
-  values must match. The public demo password must never be reused as a private credential.
-- Added SPA rewrites, response-security headers, production metadata, a ClientFlow favicon, a
-  provider guide in `deployment/README.md`, and PostgreSQL-backed GitHub Actions CI.
-- Playwright accepts `PLAYWRIGHT_BASE_URL` plus `VITE_API_URL`; `npm run test:smoke:production`
-  serially runs the complete MVP flow and nested-route/responsive checks against the public services
-  with free-tier cold-start timeouts. Do not claim production verification using localhost results.
-- `render.yaml` validates against Render's official schema. A disposable production rehearsal
-  migrated a blank database to head, seeded/no-op seeded, authenticated, and returned 200 for
-  database health, docs, and schema with exact CORS; the database was then removed.
-- The real Render Blueprint parser rejected `maxShutdownDelaySeconds` because that option is not
-  supported on free web services. It has been removed; do not restore it while the API uses
-  `plan: free`.
-- Render assigned the live resources globally unique `-kocw` suffixes. Production CORS,
-  `VITE_API_URL`, documentation, and smoke-test commands use those actual service URLs; the
-  Blueprint's tracked base names remain unchanged.
-- The first API deploy built successfully but stopped before connecting because Render's
-  `DATABASE_URL` value was not a parseable SQLAlchemy URL. Correct the secret as one unquoted line
-  with the password substituted and URL-encoded; never store or paste that value in the repository.
-- GitHub Actions run `37351674829` passed the PostgreSQL backend and frontend production-build jobs
-  after the Supabase deployment documentation was pushed.
-- GitHub Actions run `37357377238` passed both jobs after the Render free-tier Blueprint fix.
+```text
+Frontend: https://clientflow-web-abrarui12-kocw.onrender.com
+API:      https://clientflow-api-abrarui12-kocw.onrender.com
+Health:   https://clientflow-api-abrarui12-kocw.onrender.com/api/v1/health
+Docs:     https://clientflow-api-abrarui12-kocw.onrender.com/docs
+Database: Supabase Tokyo, Session Pooler port 5432 (secret URL stored only in Render)
+```
 
-Next actions, in order:
+Public demo credentials are intentionally bundled for portfolio access and must not be reused:
 
-1. The `clientflow` Supabase project now exists in Tokyo. Its IPv4 **Session pooler** port 5432 URL
-   is confirmed, but the password-bearing value must remain only in Render's secret prompt.
-2. Correct `DATABASE_URL` on `clientflow-api-abrarui12-kocw`, then manually sync the Blueprint so
-   the API retries and the static site rebuilds with the real suffixed API URL. Keep
-   `DEMO_USER_PASSWORD` and `VITE_DEMO_PASSWORD` identical.
-3. Verify Render deploy logs, migration head, HTTPS health/docs/frontend, exact CORS, and
-   direct refresh on every nested route.
-4. Run the full production MVP smoke flow from `session.md`, record live URLs/evidence here and in
-   `session.md`, mark Session 14 complete, commit, and push. Only then begin Session 15.
+```text
+Email: demo@clientflow.app
+Password: ClientFlowDemo2026!
+```
 
-## Remaining roadmap after Session 13
+Session 14 implementation and operating facts:
 
-- Session 14 — finish the account-bound deployment and public production verification listed above.
+- Render hosts the free Singapore Python API and global static frontend. Supabase hosts PostgreSQL
+  in Tokyo. Render must use the IPv4 Session Pooler on port 5432, not the IPv6 direct endpoint.
+- `render.yaml` provides exact production CORS/API origins, HTTPS static hosting, SPA fallback,
+  generated JWT secret, docs/schema exposure, security headers, database-backed health checks, and
+  provider-managed secrets. Never restore `maxShutdownDelaySeconds` while the API uses `plan: free`.
+- `backend/scripts/start-production.sh` runs `alembic upgrade head`, the idempotent normal seed, and
+  then Uvicorn. Its `set -e` behavior plus the live database-backed health response proves migration
+  and seed startup succeeded. Production reset is refused.
+- Render assigned the resources globally unique `-kocw` suffixes. Keep `CORS_ORIGINS`,
+  `VITE_API_URL`, documentation, and smoke targets aligned with those real URLs.
+- GitHub Actions run `37359089709` passed the PostgreSQL backend and frontend production-build jobs
+  for `c92a65c`.
+- Public verification on 2026-10-06 returned 200 for frontend, health, docs, OpenAPI, and every route
+  pattern in `frontend/src/app/router.tsx`. CORS returned only the deployed frontend origin without
+  credentials, and the public demo login returned 200.
+- `npm run test:smoke:production` passed all 3 public tests in 43.9 seconds. It exercised the complete
+  MVP flow, real PDF/CSV downloads, double-click idempotency, keyboard/404/200%-text behavior, and
+  390/768/1280/1600 responsive layouts.
+- Render free web services sleep after idle time, so a cold API request can take about a minute.
+  Supabase free projects can pause after low activity and may need restoration from its dashboard.
+
+Start Session 15 only from the confirmed pushed Session 14 boundary. Read its complete section in
+`session.md`. Finish the portfolio README, public links, architecture and ER diagrams,
+authorization/money/state-machine explanations, polished screenshots, 60-90 second demo plan, case
+study, clean-clone verification, and optional `v1.0.0` tag. Finish, verify, commit, and push Session
+15 before declaring the project complete.
+
+## Remaining roadmap after Session 14
+
 - Session 15 — Portfolio handoff: complete README, public links, architecture and ER diagrams,
   authorization/money/state-machine explanations, polished screenshots, 60-90 second demo plan,
   case study, clean-clone verification, and optional `v1.0.0` tag.
@@ -327,7 +323,7 @@ its detailed requirements and completion gates.
 
 ## Current verification baseline and known non-blockers
 
-- Session 14 repository-preparation baseline:
+- Session 14 completion baseline:
   - Backend: Ruff clean and `134 passed` on PostgreSQL, deterministic across repeated runs, with
     the test database empty afterward. The suite covers authentication/route inventory, a tenant
     isolation matrix, archive rules, input safety, rollback, conflicts, row locks, the migration
@@ -336,8 +332,10 @@ its detailed requirements and completion gates.
   - Frontend: lint, `tsc -b`, and the production build are clean.
   - Browser: `10` Playwright tests pass. The new `e2e/mvp.spec.ts` runs the full MVP flow once and
     double-clicks submits to prove one record per action.
-  - GitHub Actions: run `37335413206` passed the PostgreSQL backend and frontend production-build
-    jobs for `39bcc0b`.
+  - Production: public health/docs/OpenAPI and every SPA route pattern return 200; exact CORS and
+    public demo login are verified; the 3-test production MVP/responsive suite passes in 43.9s.
+  - GitHub Actions: run `37359089709` passed the PostgreSQL backend and frontend production-build
+    jobs for deployed commit `c92a65c`.
 - Expected non-blocking warnings: Starlette TestClient warns about future `httpx2`; Vite warns that
   the main minified bundle exceeds 500 kB. Address bundle splitting during polish/hardening if it
   remains useful; neither warning currently breaks a gate.

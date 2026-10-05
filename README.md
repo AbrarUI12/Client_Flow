@@ -98,6 +98,20 @@ a migrated, seeded development database. The browser tests create uniquely named
 
 ## Production deployment
 
+Live portfolio deployment:
+
+- Application: <https://clientflow-web-abrarui12-kocw.onrender.com>
+- API documentation: <https://clientflow-api-abrarui12-kocw.onrender.com/docs>
+
+Public demo credentials:
+
+```text
+Email: demo@clientflow.app
+Password: ClientFlowDemo2026!
+```
+
+The free API can require a short cold start after inactivity.
+
 The repository includes a Render Blueprint for the HTTPS static frontend and FastAPI service, a
 Supabase PostgreSQL setup guide, an idempotent migrate-and-seed start command, and PostgreSQL-backed
 GitHub Actions checks. No production credential is stored in Git. Follow
