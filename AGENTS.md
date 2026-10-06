@@ -1,7 +1,7 @@
 # ClientFlow Agent Handoff
 
-Last updated: 2026-10-06, after Session 14 was deployed publicly and its complete production smoke
-test passed.
+Last updated: 2026-10-06, after Session 15 completed the portfolio handoff and clean-environment
+verification.
 
 This file is the fast-start handoff for any new coding session. Read it before making changes,
 then read the current session in `session.md`. Keep this file current whenever a session changes
@@ -135,8 +135,9 @@ Currency: BDT
 | 12 | Added coherent responsive polish, shared notifications, focus-managed confirmations/navigation, accessible forms/titles/404, and multi-breakpoint browser coverage | `5f9af7c` |
 | 13 | PostgreSQL-only rollback-isolated suite (128 tests), audit-driven security/reliability fixes, commit-before-response sessions, production config guards, row locks, archive consistency, and a double-click-safe MVP browser test | `e992556` |
 | 14 | Deployed the Render/Supabase production system, added PostgreSQL CI and provider-independent configuration, and passed the complete public MVP/responsive smoke suite | `30c438d` |
+| 15 | Added the complete portfolio README, architecture/ER evidence, case study, timed demo, verified production screenshots, clean-clone proof, and a deterministic seeded follow-up browser test | `effdf85` |
 
-Sessions 0-14 are marked implemented and verified in `session.md` and are on `origin/main`.
+Sessions 0-15 are marked implemented and verified in `session.md` and are on `origin/main`.
 
 ## Important implemented behavior
 
@@ -262,10 +263,10 @@ Sessions 0-14 are marked implemented and verified in `session.md` and are on `or
   feedback, mobile 200% text, and no page overflow at 390/768/1280/1600 widths. Manual screenshot
   QA covered the populated desktop dashboard and mobile lead list.
 
-## Next session: Session 15
+## Project status: ClientFlow v1 complete
 
-Session 14 is implemented, publicly deployed, verified, and pushed through `30c438d`. The deployed
-application source boundary is `c92a65c`.
+Sessions 0-15 are implemented and verified. The deployed application source boundary is `c92a65c`;
+the later commits package and document that deployed system without changing its production runtime.
 
 Live production system:
 
@@ -284,7 +285,7 @@ Email: demo@clientflow.app
 Password: ClientFlowDemo2026!
 ```
 
-Session 14 implementation and operating facts:
+Production operating facts:
 
 - Render hosts the free Singapore Python API and global static frontend. Supabase hosts PostgreSQL
   in Tokyo. Render must use the IPv4 Session Pooler on port 5432, not the IPv6 direct endpoint.
@@ -309,36 +310,45 @@ Session 14 implementation and operating facts:
 - Render free web services sleep after idle time, so a cold API request can take about a minute.
   Supabase free projects can pause after low activity and may need restoration from its dashboard.
 
-Start Session 15 only from the confirmed pushed Session 14 boundary. Read its complete section in
-`session.md`. Finish the portfolio README, public links, architecture and ER diagrams,
-authorization/money/state-machine explanations, polished screenshots, 60-90 second demo plan, case
-study, clean-clone verification, and optional `v1.0.0` tag. Finish, verify, commit, and push Session
-15 before declaring the project complete.
+Session 15 portfolio and verification facts:
 
-## Remaining roadmap after Session 14
+- The root `README.md` is the reviewer entry point. It contains live/demo links, business context,
+  workflow/features, screenshots, architecture, technology rationale, full local setup, environment
+  configuration, migration/seed/test commands, deployment notes, v1 limitations, and v2 directions.
+- `docs/architecture.md` contains the system and ER diagrams plus ownership, exact-money,
+  state-machine, time, deployment, and verification explanations. `docs/case-study.md` and
+  `docs/demo-script.md` provide the engineering narrative and timed 80-second walkthrough.
+- Four 1440×900 production screenshots under `docs/screenshots/` use only the fictional canonical
+  seed. The PDF image came from a one-page A4 export that was text-extracted and Poppler-rendered
+  before visual review. Image properties contain no private metadata.
+- A separate clean checkout installed dependencies, migrated two fresh PostgreSQL databases from
+  zero, seeded exactly 30 leads/8 quotations/21 items/12 follow-ups, proved seed idempotency, passed
+  Ruff and all 134 backend tests, and passed a clean npm install, lint, type-check, and build.
+- The same checkout passed all 10 local Playwright tests against the fresh migrated/seeded database.
+  The run found and fixed an ambiguous follow-up test locator by scoping actions to its unique note.
+- The public frontend, database-backed health endpoint, API docs, and GitHub repository returned 200
+  during the Session 15 link recheck. The complete production smoke evidence remains the Session 14
+  3-test run.
 
-- Session 15 — Portfolio handoff: complete README, public links, architecture and ER diagrams,
-  authorization/money/state-machine explanations, polished screenshots, 60-90 second demo plan,
-  case study, clean-clone verification, and optional `v1.0.0` tag.
+## Remaining roadmap
 
-Refer to each full session section in `session.md` before starting; the bullets above do not replace
-its detailed requirements and completion gates.
+No planned v1 session remains. Any further work is a new explicitly scoped v2 or maintenance task.
+The v1 limitations and candidate directions are recorded in `README.md`.
 
 ## Current verification baseline and known non-blockers
 
-- Session 14 completion baseline:
+- Session 15 completion baseline:
   - Backend: Ruff clean and `134 passed` on PostgreSQL, deterministic across repeated runs, with
     the test database empty afterward. The suite covers authentication/route inventory, a tenant
     isolation matrix, archive rules, input safety, rollback, conflicts, row locks, the migration
     round trip with drift detection, and seed safety. Reverting each key fix makes its guard test
     fail.
-  - Frontend: lint, `tsc -b`, and the production build are clean.
-  - Browser: `10` Playwright tests pass. The new `e2e/mvp.spec.ts` runs the full MVP flow once and
-    double-clicks submits to prove one record per action.
+  - Frontend: clean `npm ci`, lint, `tsc -b`, and the production build pass.
+  - Browser: `10` Playwright tests pass against a newly migrated and seeded database.
   - Production: public health/docs/OpenAPI and every SPA route pattern return 200; exact CORS and
     public demo login are verified; the 3-test production MVP/responsive suite passes in 43.9s.
-  - GitHub Actions: run `37359089709` passed both jobs for deployed commit `c92a65c`; run
-    `37360841806` passed both jobs for completion commit `30c438d`.
+  - Portfolio: all local document links resolve; the four screenshots are 1440×900, visually
+    inspected, and contain only fictional public demo information.
 - Expected non-blocking warnings: Starlette TestClient warns about future `httpx2`; Vite warns that
   the main minified bundle exceeds 500 kB. Address bundle splitting during polish/hardening if it
   remains useful; neither warning currently breaks a gate.

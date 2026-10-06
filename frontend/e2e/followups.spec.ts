@@ -40,14 +40,16 @@ test('follow-up can be scheduled, edited, grouped, and completed', async ({ page
   const todaySection = page.getByRole('region', { name: 'Today' })
   await expect(todaySection.getByText(initialNote)).toBeVisible()
 
-  await todaySection.getByRole('button', { name: 'Edit' }).click()
+  const createdFollowUp = todaySection.locator('article').filter({ hasText: initialNote })
+  await createdFollowUp.getByRole('button', { name: 'Edit' }).click()
   const editDialog = page.getByRole('dialog', { name: 'Edit follow-up' })
   await editDialog.getByLabel('Note', { exact: true }).fill(editedNote)
   await editDialog.getByRole('button', { name: 'Save changes' }).click()
   await expect(todaySection.getByText(editedNote)).toBeVisible()
 
   await page.setViewportSize({ width: 390, height: 844 })
-  await todaySection.getByRole('button', { name: 'Complete' }).click()
+  const editedFollowUp = todaySection.locator('article').filter({ hasText: editedNote })
+  await editedFollowUp.getByRole('button', { name: 'Complete' }).click()
   const completedSection = page.getByRole('region', { name: 'Completed' })
   await expect(completedSection.getByText(editedNote)).toBeVisible()
   await expect(completedSection.getByText(/Completed/).last()).toBeVisible()

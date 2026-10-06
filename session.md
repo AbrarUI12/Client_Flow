@@ -1679,6 +1679,39 @@ Session 14 is complete and pushed. Session 15 may now begin.
 
 Present ClientFlow as a professional engineering case study, not merely a code repository.
 
+## Status
+
+```text
+IMPLEMENTED AND VERIFIED — 2026-10-06
+```
+
+The root README now leads with the live product, public demo, business problem, complete workflow,
+four production screenshots, architecture, engineering guarantees, technology rationale, local
+setup, environment variables, migrations, deterministic seed, verification commands, deployment,
+v1 limitations, and realistic v2 directions. Companion documents under `docs/` provide the system
+and ER diagrams, ownership/money/state-machine explanations, engineering case study, and timed
+80-second demo script.
+
+The dashboard, lead-detail, quotation-builder, and generated-PDF screenshots were captured from the
+public deployment using only deterministic fictional seed data at 1440×900. All four were inspected
+for clipping, private information, consistent dimensions, and stale/incorrect content. The source
+quotation PDF was also extracted and rendered with Poppler before the portfolio frame was created;
+its one-page A4 content and authoritative totals matched the owned server record.
+
+Final verification used a separate clean checkout and two newly created PostgreSQL databases. From
+the documented commands it installed a new Python environment, applied Alembic from zero, created
+the canonical 30-lead/8-quotation/21-item/12-follow-up dataset, and proved a second seed was a no-op.
+Ruff passed and all 134 PostgreSQL tests passed. A clean `npm ci` passed lint, TypeScript, and the
+production build, and the full local Playwright suite passed all 10 tests against the fresh database.
+The clean run exposed and fixed one test-only ambiguity: the follow-up scenario now scopes Edit and
+Complete to the uniquely created reminder instead of assuming the seeded Today group has one row.
+
+The public frontend, database-backed health endpoint, API documentation, and GitHub repository were
+rechecked over HTTPS and returned 200. Session 14's complete 3-test public production smoke remains
+the deployment acceptance evidence. The four portfolio images contain only standard dimension/unit
+properties—no private embedded metadata—and no real customer data. The only credentials shown are
+the intentionally published demo account.
+
 ## README
 
 Create a complete root README containing:
@@ -1793,34 +1826,34 @@ A session is complete only when all applicable statements are true:
 
 ClientFlow v1 is complete only when all items below work reliably:
 
-- [ ] Demo user can log in.
-- [ ] Anonymous users cannot access protected APIs.
-- [ ] User A cannot access User B's data.
-- [ ] Dashboard displays accurate metrics.
-- [ ] Lead can be created.
-- [ ] Lead can be searched and filtered.
-- [ ] Lead can be edited.
-- [ ] Lead can be archived.
-- [ ] Lead detail shows its quotations and follow-ups.
-- [ ] Quotation requires at least one valid item.
-- [ ] Quotation totals are calculated accurately by the backend.
-- [ ] Draft quotation can be edited.
-- [ ] Sent quotation cannot be freely edited.
-- [ ] Quotation can become accepted or rejected through valid transitions.
-- [ ] Accepting a quotation marks the lead won.
-- [ ] Follow-up can be scheduled.
-- [ ] Follow-up appears in the correct timezone-aware group.
-- [ ] Follow-up can be completed.
-- [ ] Quotation PDF downloads and contains correct totals.
-- [ ] Lead CSV downloads safely.
-- [ ] Demo data can be reset safely.
-- [ ] Primary screens work on mobile and desktop.
-- [ ] Keyboard navigation works for primary actions.
-- [ ] Backend tests pass.
-- [ ] Frontend type checking and production build pass.
-- [ ] Clean database can be created entirely with migrations.
-- [ ] Production deployment passes the complete smoke test.
-- [ ] README and portfolio evidence are complete.
+- [x] Demo user can log in.
+- [x] Anonymous users cannot access protected APIs.
+- [x] User A cannot access User B's data.
+- [x] Dashboard displays accurate metrics.
+- [x] Lead can be created.
+- [x] Lead can be searched and filtered.
+- [x] Lead can be edited.
+- [x] Lead can be archived.
+- [x] Lead detail shows its quotations and follow-ups.
+- [x] Quotation requires at least one valid item.
+- [x] Quotation totals are calculated accurately by the backend.
+- [x] Draft quotation can be edited.
+- [x] Sent quotation cannot be freely edited.
+- [x] Quotation can become accepted or rejected through valid transitions.
+- [x] Accepting a quotation marks the lead won.
+- [x] Follow-up can be scheduled.
+- [x] Follow-up appears in the correct timezone-aware group.
+- [x] Follow-up can be completed.
+- [x] Quotation PDF downloads and contains correct totals.
+- [x] Lead CSV downloads safely.
+- [x] Demo data can be reset safely.
+- [x] Primary screens work on mobile and desktop.
+- [x] Keyboard navigation works for primary actions.
+- [x] Backend tests pass.
+- [x] Frontend type checking and production build pass.
+- [x] Clean database can be created entirely with migrations.
+- [x] Production deployment passes the complete smoke test.
+- [x] README and portfolio evidence are complete.
 
 ---
 
