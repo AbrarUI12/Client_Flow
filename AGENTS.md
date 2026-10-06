@@ -1,7 +1,7 @@
 # ClientFlow Agent Handoff
 
-Last updated: 2026-10-06, after Session 15 completed the portfolio handoff and clean-environment
-verification.
+Last updated: 2026-10-06, after Session 15 completed the portfolio handoff, clean-environment
+verification, and `v1.0.0` release.
 
 This file is the fast-start handoff for any new coding session. Read it before making changes,
 then read the current session in `session.md`. Keep this file current whenever a session changes
@@ -329,6 +329,8 @@ Session 15 portfolio and verification facts:
 - The public frontend, database-backed health endpoint, API docs, and GitHub repository returned 200
   during the Session 15 link recheck. The complete production smoke evidence remains the Session 14
   3-test run.
+- GitHub Actions run `37433040365` passed the PostgreSQL backend and frontend production-build jobs
+  for completion commit `78753e4`. The annotated `v1.0.0` tag points to that verified boundary.
 
 ## Remaining roadmap
 
@@ -349,6 +351,7 @@ The v1 limitations and candidate directions are recorded in `README.md`.
     public demo login are verified; the 3-test production MVP/responsive suite passes in 43.9s.
   - Portfolio: all local document links resolve; the four screenshots are 1440×900, visually
     inspected, and contain only fictional public demo information.
+  - Release: CI run `37433040365` passed both jobs for `78753e4`; annotated tag `v1.0.0` is pushed.
 - Expected non-blocking warnings: Starlette TestClient warns about future `httpx2`; Vite warns that
   the main minified bundle exceeds 500 kB. Address bundle splitting during polish/hardening if it
   remains useful; neither warning currently breaks a gate.

@@ -1712,6 +1712,10 @@ the deployment acceptance evidence. The four portfolio images contain only stand
 properties—no private embedded metadata—and no real customer data. The only credentials shown are
 the intentionally published demo account.
 
+GitHub Actions run `37433040365` passed both the PostgreSQL backend and frontend production-build
+jobs for completion commit `78753e4`. The annotated `v1.0.0` tag is pushed at that verified release
+boundary.
+
 ## README
 
 Create a complete root README containing:
