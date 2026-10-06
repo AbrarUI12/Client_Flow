@@ -1,22 +1,130 @@
 # ClientFlow
 
-ClientFlow is a focused CRM-lite application for managing leads, quotations, and follow-ups. The v1 stack is React, TypeScript, Vite, Tailwind CSS, FastAPI, SQLAlchemy, and PostgreSQL.
+ClientFlow is a production-deployed CRM-lite application for freelancers and small service teams. It turns a lead into a priced quotation, scheduled follow-up, and visible dashboard outcome without the overhead of a full sales platform.
 
-## Prerequisites
+[Open the live application](https://clientflow-web-abrarui12-kocw.onrender.com) · [Browse the API documentation](https://clientflow-api-abrarui12-kocw.onrender.com/docs) · [Read the case study](docs/case-study.md)
 
-- Python 3.11+
-- Node.js 20.19+ (or 22.12+)
-- Docker Desktop with Docker Compose
+> The API runs on Render's free tier and can take about a minute to wake after inactivity.
 
-## 1. Start PostgreSQL
+## Try the public demo
+
+| Field | Value |
+| --- | --- |
+| Email | `demo@clientflow.app` |
+| Password | `ClientFlowDemo2026!` |
+| Frontend | <https://clientflow-web-abrarui12-kocw.onrender.com> |
+| API docs | <https://clientflow-api-abrarui12-kocw.onrender.com/docs> |
+
+These credentials are intentionally public and are only for the portfolio deployment. Do not reuse the password elsewhere. The shared demo may contain records created by other visitors.
+
+## Product at a glance
+
+Small service businesses often track prospects in one tool, prepare prices in a spreadsheet, and remember follow-ups from chat history. That fragmentation makes ownership unclear, allows quote totals to drift, and hides the next action.
+
+ClientFlow keeps the complete v1 workflow in one owned workspace:
+
+```text
+Login → qualify a lead → prepare an exact quotation → send/accept it
+      → schedule or complete follow-ups → see the dashboard update
+      → export a customer-ready PDF or a safe lead CSV
+```
+
+Core capabilities include:
+
+- Authenticated, tenant-owned lead management with search, filters, pagination, editing, and archival.
+- Server-authoritative quotations with decimal-safe line items, discounts, tax, legal state transitions, and PDF export.
+- Timezone-aware follow-ups grouped as overdue, today, upcoming, or completed.
+- One-request dashboard metrics for pipeline, open quotation value, reminders, and recent leads.
+- Deterministic demo data, isolated demo reset, responsive layouts, keyboard workflows, and accessible feedback.
+- PostgreSQL migrations, rollback-isolated tests, production configuration guards, and end-to-end browser coverage.
+
+## Screenshots
+
+All images use the deterministic fictional demo dataset at a consistent 1440×900 viewport.
+
+| Dashboard | Lead detail |
+| --- | --- |
+| ![ClientFlow dashboard showing pipeline metrics, recent leads, and reminders](docs/screenshots/dashboard.png) | ![Lead detail showing contact information, quotations, and follow-ups](docs/screenshots/lead-detail.png) |
+
+| Quotation builder | Generated PDF |
+| --- | --- |
+| ![Quotation builder showing line items and exact live totals](docs/screenshots/quotation-builder.png) | ![Generated customer quotation PDF](docs/screenshots/quotation-pdf.png) |
+
+## Architecture
+
+```mermaid
+flowchart LR
+    U[Browser] -->|HTTPS / JSON| W[React + TypeScript SPA<br/>Render Static Site]
+    W -->|Bearer JWT · /api/v1| A[FastAPI service<br/>Render Web Service]
+    A --> S[Validation + service layer<br/>SQLAlchemy transactions]
+    S -->|PostgreSQL protocol| D[(Supabase PostgreSQL)]
+    A -->|stream| E[PDF and CSV exports]
+    G[GitHub Actions<br/>PostgreSQL 17] -->|lint · test · build| R[GitHub repository]
+    R -->|Blueprint deploy| W
+    R -->|Blueprint deploy| A
+```
+
+The browser owns interaction state; the API owns authentication, authorization, validation, transitions, and financial truth. Every business query is scoped to the authenticated user, and database work commits before a success response is sent.
+
+See [Architecture and data design](docs/architecture.md) for the ER diagram, request flow, authorization model, quotation state machine, and money policy.
+
+## Important engineering guarantees
+
+### Ownership authorization
+
+A bearer JWT identifies one active user. Leads are queried with that user's `owner_id`; quotations and follow-ups are authorized through their parent lead. A foreign UUID produces the same `404` as a missing record, which avoids leaking whether another tenant owns it. An OpenAPI inventory test ensures every business route has the authentication dependency.
+
+### Exact money
+
+The API rejects client-supplied totals. It uses Python `Decimal`, PostgreSQL `NUMERIC`, and `ROUND_HALF_UP` to calculate line totals, subtotal, discount, post-discount tax, and final total. The TypeScript builder provides a scaled-integer preview, but the saved API response is always authoritative.
+
+### Legal quotation transitions
+
+```text
+DRAFT ──send──> SENT ──accept──> ACCEPTED
+                    └──reject──> REJECTED
+```
+
+Only drafts can be edited. Accepted and rejected quotations are terminal. Sending can move an eligible lead to Quoted; accepting marks its lead Won in the same transaction. Row locks serialize concurrent transition attempts so only one conflicting action succeeds.
+
+## Technology choices
+
+| Layer | Technology | Reason |
+| --- | --- | --- |
+| Web | React 19, TypeScript 6, Vite 8 | Typed, fast SPA development with a small deployment surface |
+| UI | Tailwind CSS 4, React Hook Form, Zod, Lucide | Responsive styling, accessible forms, shared client validation |
+| Data fetching | TanStack Query 5 | Cache ownership, invalidation, retries, and loading/error states |
+| API | FastAPI, Pydantic, SQLAlchemy 2 | Typed HTTP contracts, explicit validation, and composable owned queries |
+| Database | PostgreSQL 17, Alembic, psycopg | Exact numeric types, constraints, row locks, sequences, and repeatable migrations |
+| Security | Argon2id, PyJWT | Modern password hashing and short-lived signed access tokens |
+| Documents | ReportLab, standards-based CSV | Server-owned exports using authoritative data |
+| Testing | Pytest, Playwright, Ruff, oxlint, TypeScript | Database, API, browser, accessibility, and static quality gates |
+| Hosting | Render + Supabase | Static CDN, Python service, managed PostgreSQL, and Blueprint IaC |
+
+## Run locally
+
+### Prerequisites
+
+- Python 3.11 or newer
+- Node.js 20.19+ or 22.12+
+- Docker Desktop with Docker Compose, or an existing PostgreSQL server
+
+### 1. Start PostgreSQL
+
+The included Compose service starts the development PostgreSQL server. The test fixture creates the separate `_test` database on that same server when the suite first runs:
 
 ```powershell
 docker compose up -d db
 ```
 
-The development database is exposed on `localhost:5432`. Its non-production credentials match the default backend settings and can be overridden with `backend/.env`.
+If you already have PostgreSQL, create two databases instead and set `DATABASE_URL` and `TEST_DATABASE_URL` to them. The test database name must end in `_test` because the suite rebuilds its `public` schema.
 
-## 2. Start the API
+```text
+DATABASE_URL=postgresql+psycopg://USER:PASSWORD@HOST:PORT/clientflow
+TEST_DATABASE_URL=postgresql+psycopg://USER:PASSWORD@HOST:PORT/clientflow_test
+```
+
+### 2. Install, migrate, and seed the API
 
 ```powershell
 cd backend
@@ -30,9 +138,9 @@ python -m app.scripts.seed_demo_user
 uvicorn app.main:app --reload --port 8000
 ```
 
-Verify the API at <http://localhost:8000/api/v1/health> and view its interactive documentation at <http://localhost:8000/docs>.
+The health endpoint is <http://localhost:8000/api/v1/health>. To expose Swagger locally, set `EXPOSE_API_DOCS=true` in `backend/.env`, then open <http://localhost:8000/docs>.
 
-## 3. Start the web app
+### 3. Install and start the web app
 
 In another terminal:
 
@@ -43,37 +151,65 @@ npm install
 npm run dev
 ```
 
-Open <http://localhost:5173>. The connection screen calls the FastAPI health endpoint and reports whether the API is available.
-
-Development demo credentials:
+Open <http://localhost:5173> and sign in with:
 
 ```text
 Email: demo@clientflow.app
 Password: development-only-change-me
 ```
 
-## Demo dataset and reset
+### Environment configuration
 
-The normal seed command creates the demo account plus a deterministic, screenshot-ready dataset of
-30 leads, 8 quotations with 21 items, and 12 timezone-relative follow-ups. Running it again is a
-no-op, so it is safe during normal development setup:
+Start from the checked-in example files; never commit `.env` files.
+
+| Backend variable | Purpose |
+| --- | --- |
+| `DATABASE_URL` | SQLAlchemy PostgreSQL connection URL |
+| `SECRET_KEY` | JWT signing secret; production requires at least 32 private bytes |
+| `CORS_ORIGINS` | Comma-separated allowed frontend origins |
+| `EXPOSE_API_DOCS` | Enables `/docs` and `/openapi.json` |
+| `DEMO_USER_*` | Seeded account, profile, timezone, and currency settings |
+| `TEST_DATABASE_URL` | Optional test-only PostgreSQL URL; must end in `_test` |
+
+| Frontend variable | Purpose |
+| --- | --- |
+| `VITE_API_URL` | API base URL including `/api/v1` |
+| `VITE_DEMO_EMAIL` | Optional login-page demo hint |
+| `VITE_DEMO_PASSWORD` | Optional login-page demo hint |
+
+Production additionally refuses the documented development database URL, wildcard or empty CORS origins, and weak/public signing secrets.
+
+## Migrations and demo data
+
+Alembic is the only schema creation path. Normal setup only needs the upgrade command:
 
 ```powershell
 cd backend
+alembic upgrade head
+```
+
+To verify a migration round trip against a disposable database:
+
+```powershell
+alembic downgrade base
+alembic upgrade head
+```
+
+The normal seed is idempotent. It creates or reuses the demo account and adds 30 fictional leads, 8 quotations with 21 line items, and 12 relative follow-ups only when the dataset marker is absent:
+
+```powershell
 python -m app.scripts.seed_demo_user
 ```
 
-To discard and recreate only the configured demo user's business records, use the explicit reset
-flag. The demo account and password remain unchanged, and other users and their data are preserved:
+Development-only reset deletes and recreates business records belonging to the demo user while preserving every other tenant:
 
 ```powershell
 python -m app.scripts.seed_demo_user --reset
 ```
 
-Reset is disabled when `ENVIRONMENT=production`. The normal production seed also requires replacing
-the documented development-only demo password.
+Reset is unconditionally disabled in production.
 
-## Checks
+## Verification
 
 ```powershell
 cd backend
@@ -86,102 +222,58 @@ npm run build
 npm run test:e2e
 ```
 
-The backend suite runs entirely against PostgreSQL. By default it uses
-`postgresql+psycopg://clientflow:clientflow@localhost:5432/clientflow_test` (the Docker Compose
-server), creates that database if it is missing, and builds its schema from the Alembic
-migrations on every run. Each test runs inside a transaction that is always rolled back. To use
-another server, set `TEST_DATABASE_URL`. The database name must end in `_test`, because the suite
-drops and rebuilds its schema.
+The backend suite runs only on PostgreSQL. It creates the `_test` database if necessary, applies Alembic to a clean schema, and rolls every test back. Browser tests expect the migrated, seeded API on port 8000 and Vite on port 5173; they create uniquely named development records.
 
-`npm run test:e2e` expects the API on port 8000 and the web app on port 5173 to be running against
-a migrated, seeded development database. The browser tests create uniquely named records there.
+For the deployed system:
+
+```powershell
+cd frontend
+npm run test:smoke:production
+```
+
+The production suite exercises the complete workflow, binary exports, double-click safety, keyboard behavior, 200% text, and responsive layouts.
+
+## Repository map
+
+```text
+backend/       FastAPI app, services, models, migrations, scripts, and tests
+frontend/      React application and Playwright browser tests
+deployment/    Render/Supabase provisioning and verification guide
+docs/          Architecture, case study, demo script, and screenshots
+render.yaml    Production infrastructure Blueprint
+session.md     Session-by-session implementation and acceptance record
+AGENTS.md      Current engineering handoff and operating facts
+```
 
 ## Production deployment
 
-Live portfolio deployment:
+Render hosts the static frontend and Python API; Supabase hosts PostgreSQL. `render.yaml` defines exact origins, health checks, security headers, SPA routing, generated secrets, and provider-managed environment values. API startup applies migrations and the idempotent normal seed before serving traffic.
 
-- Application: <https://clientflow-web-abrarui12-kocw.onrender.com>
-- API documentation: <https://clientflow-api-abrarui12-kocw.onrender.com/docs>
+See [deployment/README.md](deployment/README.md) for provisioning, secret handling, connection-pool requirements, and public smoke checks.
 
-Public demo credentials:
+## Known v1 limitations
 
-```text
-Email: demo@clientflow.app
-Password: ClientFlowDemo2026!
-```
+- One owner represents one workspace; there are no teams, invitations, or role levels.
+- Authentication uses access tokens only; there is no password reset, refresh-token rotation, or social login.
+- Quotes use the owner's single configured currency and do not model payments, invoices, or exchange rates.
+- Delivery is manual: “mark sent” records a workflow transition but does not email the PDF.
+- Leads are archived rather than restored or permanently deleted through the UI.
+- The shared public demo is not an isolated sandbox, and free hosting can cold-start.
 
-The free API can require a short cold start after inactivity.
+## Possible v2 directions
 
-The repository includes a Render Blueprint for the HTTPS static frontend and FastAPI service, a
-Supabase PostgreSQL setup guide, an idempotent migrate-and-seed start command, and PostgreSQL-backed
-GitHub Actions checks. No production credential is stored in Git. Follow
-[`deployment/README.md`](deployment/README.md) to provision and verify the public deployment.
+- Team workspaces with roles, assignments, audit history, and activity feeds.
+- Email delivery, reusable quote templates, approval links, invoices, and payment status.
+- Refresh sessions, password recovery, MFA, rate limiting, and self-service onboarding.
+- Custom pipeline stages, tags, imports, saved views, analytics, and scheduled reminder delivery.
+- Background jobs, object storage for branded assets, observability, backups, and paid always-on hosting.
 
-## Security and reliability safeguards
+## Portfolio handoff
 
-- Every API route except health and login requires a valid bearer token. Tokens must carry an
-  expiry, issue time, subject, and type. Login failures are identical for unknown emails, wrong
-  passwords, and inactive accounts.
-- Every record query is scoped to the authenticated owner. Another account's IDs return the same
-  `404` as missing records.
-- Each request's database work is committed or rolled back before the response is sent.
-  Quotation and follow-up changes lock their row, so concurrent conflicting actions resolve to one
-  success and one `409`.
-- With `ENVIRONMENT=production`, the API refuses to start without a private `SECRET_KEY` of at
-  least 32 bytes, a real `DATABASE_URL`, and explicit `CORS_ORIGINS`. CORS allows only the
-  configured origins, the GET/POST/PATCH methods, and the headers the web app sends.
-- Validation errors never echo submitted values, and unexpected errors return no internal details.
-- Archiving a lead also hides its quotations and follow-ups from lists, detail pages, and PDFs,
-  matching the dashboard. The records remain stored.
-
-## Quotation calculation policy
-
-The API is authoritative for quotation totals and does not accept client-supplied subtotal,
-discount, tax, total, or line-total values. It calculates each line total first, rounds every
-persisted money result to two decimal places using decimal `ROUND_HALF_UP`, applies the discount
-to the subtotal, and then applies tax to the discounted subtotal. Quantities support three decimal
-places; unit prices and percentages support two.
-
-## Follow-up time policy
-
-Follow-up timestamps must include a timezone offset and are stored as absolute instants. The API
-groups incomplete reminders using the authenticated user's configured local calendar: dates before
-today are overdue, the full local day is today, and tomorrow onward is upcoming. Completed reminders
-are separate. Completion is idempotent, so a safe retry preserves the original completion time.
-
-## Dashboard aggregation policy
-
-Dashboard metrics include only the authenticated user's non-archived leads and their related data.
-“Open quotations” means Draft and Sent quotations; both the count and value exclude accepted,
-rejected, and archived-lead records. Upcoming dashboard reminders include today and future local
-dates, while overdue reminders are due before the start of the user's current local day.
-
-## Export safety and ownership
-
-Quotation PDFs are generated from server-owned records and server-calculated totals. They include
-the authenticated user's business profile, client identity, ordered items, dates, status, notes,
-and a repeating item header when the document spans pages. Foreign quotation IDs return the same
-not-found response as missing records.
-
-Lead CSV exports include all non-archived leads owned by the authenticated user in a stable column
-order. Dates are rendered in the user's configured timezone, decimals retain two places, and a
-UTF-8 byte-order mark improves spreadsheet compatibility. User-entered text beginning with `=`,
-`+`, `-`, or `@` (including after leading whitespace) is prefixed with an apostrophe to prevent
-spreadsheet formula execution; Python's CSV writer handles commas, quotes, Unicode, and newlines.
-
-## UX and accessibility
-
-ClientFlow uses keyboard-accessible native dialogs for mobile navigation, archive confirmation,
-follow-up editing, and irreversible quotation transitions. Focus returns to the invoking control,
-validation errors are associated with form fields, icon-only controls have accessible names, and
-success/error notifications are announced through live regions. Every route has a meaningful
-document title and unknown paths show a useful 404 page.
-
-The primary routes are regression-tested at mobile, tablet, laptop, and wide-desktop widths, plus
-200% text enlargement. The UI honors reduced-motion preferences and uses text labels—not color
-alone—for lead and quotation states.
-
-## Project plan
-
-The approved product definition is in [`ClientFlow_v1_Full_Project_Design.md`](ClientFlow_v1_Full_Project_Design.md), and the implementation sequence is in [`session.md`](session.md).
+- [Architecture and data design](docs/architecture.md)
+- [Engineering case study](docs/case-study.md)
+- [60–90 second demo script](docs/demo-script.md)
+- [Production deployment guide](deployment/README.md)
+- [Locked v1 product design](ClientFlow_v1_Full_Project_Design.md)
+- [Implementation and acceptance record](session.md)
 
